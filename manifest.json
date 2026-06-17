@@ -1,10 +1,10 @@
 {
-  "id": "/FaProTime/",
+  "id": "/FaProTime-repo/",
   "name": "FaProTime - Planning Horaires",
   "short_name": "FaProTime",
   "description": "Application professionnelle de gestion des horaires de travail : saisie quotidienne, 17 types d'absences, soldes de congés, objectifs mensuels et synchronisation multi-appareils.",
-  "start_url": "/FaProTime/",
-  "scope": "/FaProTime/",
+  "start_url": "/FaProTime-repo/",
+  "scope": "/FaProTime-repo/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0f1117",
