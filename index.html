@@ -1,0 +1,2893 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FaProTime</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #181c27;
+    --card: #1e2336;
+    --border: #2a3050;
+    --accent: #4f8ef7;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --orange: #fb923c;
+    --red: #f87171;
+    --text: #e8eaf0;
+    --muted: #7a82a0;
+    --input-bg: #252b42;
+    --hover: #2a3050;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent2); }
+
+  .header-controls { display: flex; align-items: center; gap: 12px; }
+
+  /* ---- NAV ---- */
+  .nav-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .nav-select {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .nav-select:focus { border-color: var(--accent); }
+
+  .nav-label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  .month-tabs { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; }
+
+  .month-tab {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all .15s;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .month-tab:hover { background: var(--hover); color: var(--text); }
+  .month-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .month-tab.has-data { border-color: var(--green); color: var(--green); }
+  .month-tab.has-data.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+  /* ---- LEGEND ---- */
+  .legend-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .legend-label { color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; margin-right: 4px; }
+  .legend-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 4px;
+    cursor: default;
+    letter-spacing: .04em;
+  }
+  .legend-badge .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+  /* ---- ABSENCE BADGE STYLES ---- */
+  /* MAL - Maladie → rouge */
+  .ab-MAL { background: #2e1515; color: #fc8181; border: 1px solid #7b2020; }
+  .ab-MAL .dot { background: #fc8181; }
+  /* ACC - Accident travail → orange foncé */
+  .ab-ACC { background: #2e1e10; color: #f6a05a; border: 1px solid #7a3d10; }
+  .ab-ACC .dot { background: #f6a05a; }
+  /* CA - Congé annuel → bleu ciel */
+  .ab-CA  { background: #0f2340; color: #60b4f7; border: 1px solid #1a4a80; }
+  .ab-CA  .dot { background: #60b4f7; }
+  /* CT - Congé trimestriel → ambre/or */
+  .ab-CT  { background: #2a2000; color: #f5c842; border: 1px solid #6b5000; }
+  .ab-CT  .dot { background: #f5c842; }
+  /* RTT → violet */
+  .ab-RTT { background: #1e1240; color: #b794f4; border: 1px solid #4a2d90; }
+  .ab-RTT .dot { background: #b794f4; }
+  /* FER - Férié → vert émeraude */
+  .ab-FER { background: #0f2a1e; color: #34d399; border: 1px solid #1a6040; }
+  .ab-FER .dot { background: #34d399; }
+  /* FOR - Formation → cyan */
+  .ab-FOR { background: #0a2530; color: #38bdf8; border: 1px solid #0e5070; }
+  .ab-FOR .dot { background: #38bdf8; }
+  /* ABS - Absence injustifiée → gris-rouge */
+  .ab-ABS { background: #1e1a1a; color: #a08080; border: 1px solid #4a3030; }
+  .ab-ABS .dot { background: #a08080; }
+
+  /* MAT - Maternité → rose */
+  .ab-MAT { background: #2e1525; color: #f9a8d4; border: 1px solid #7b2055; }
+  .ab-MAT .dot { background: #f9a8d4; }
+  /* PAT - Paternité → bleu roi */
+  .ab-PAT { background: #0f1e45; color: #818cf8; border: 1px solid #1e3a90; }
+  .ab-PAT .dot { background: #818cf8; }
+  /* NAI - Naissance → or clair */
+  .ab-NAI { background: #251e00; color: #fde68a; border: 1px solid #6b5500; }
+  .ab-NAI .dot { background: #fde68a; }
+  /* PAR - Parental → terre/brun */
+  .ab-PAR { background: #1e1208; color: #d4a57a; border: 1px solid #6b3a10; }
+  .ab-PAR .dot { background: #d4a57a; }
+  /* DEU - Décès → gris bleuté */
+  .ab-DEU { background: #161a22; color: #94a3b8; border: 1px solid #334155; }
+  .ab-DEU .dot { background: #94a3b8; }
+  /* MAR - Mariage/PACS → lilas */
+  .ab-MAR { background: #1e1030; color: #c084fc; border: 1px solid #5a2090; }
+  .ab-MAR .dot { background: #c084fc; }
+  /* DEP - Déplacement → ambre */
+  .ab-DEP { background: #251800; color: #fbbf24; border: 1px solid #704800; }
+  .ab-DEP .dot { background: #fbbf24; }
+  /* AST - Astreinte → rouge foncé */
+  .ab-AST { background: #250808; color: #fca5a5; border: 1px solid #7f1d1d; }
+  .ab-AST .dot { background: #fca5a5; }
+  /* TEL - Télétravail → cyan clair */
+  .ab-TEL { background: #061820; color: #67e8f9; border: 1px solid #0e5060; }
+  .ab-TEL .dot { background: #67e8f9; }
+
+  /* Barres colorées nouvelles absences */
+  tr.row-MAT { background: #1e1018 !important; border-left: 4px solid #f9a8d4 !important; }
+  tr.row-PAT { background: #0f1530 !important; border-left: 4px solid #818cf8 !important; }
+  tr.row-NAI { background: #1e1800 !important; border-left: 4px solid #fde68a !important; }
+  tr.row-PAR { background: #180e05 !important; border-left: 4px solid #d4a57a !important; }
+  tr.row-DEU { background: #121518 !important; border-left: 4px solid #94a3b8 !important; }
+  tr.row-MAR { background: #150a20 !important; border-left: 4px solid #c084fc !important; }
+  tr.row-DEP { background: #1a1200 !important; border-left: 4px solid #fbbf24 !important; }
+  tr.row-AST { background: #1a0808 !important; border-left: 4px solid #fca5a5 !important; }
+  tr.row-TEL { background: #051218 !important; border-left: 4px solid #67e8f9 !important; }
+  tr.row-MAL { background: #1a1217 !important; border-left: 4px solid #fc8181 !important; }
+  tr.row-ACC { background: #1a1510 !important; border-left: 4px solid #f6a05a !important; }
+  tr.row-CA  { background: #0f1825 !important; border-left: 4px solid #60b4f7 !important; }
+  tr.row-CT  { background: #1a1800 !important; border-left: 4px solid #f5c842 !important; }
+  tr.row-RTT { background: #130f25 !important; border-left: 4px solid #b794f4 !important; }
+  tr.row-FER { background: #0e1e16 !important; border-left: 4px solid #34d399 !important; }
+  tr.row-FOR { background: #0a1820 !important; border-left: 4px solid #38bdf8 !important; }
+  tr.row-ABS { background: #1a1414 !important; border-left: 4px solid #a08080 !important; }
+
+  /* ---- MAIN ---- */
+  main { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+  .month-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .month-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--text);
+  }
+
+  .month-summary { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+  .summary-chip {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    text-align: center;
+  }
+  .summary-chip .val {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .summary-chip .lbl {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  /* ---- TABLE ---- */
+  .planning-table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  table { width: 100%; border-collapse: collapse; background: var(--card); }
+
+  thead th {
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:not([class*="row-"]):hover { background: var(--hover); }
+
+  tbody td { padding: 7px 10px; vertical-align: middle; }
+
+  .day-label { font-weight: 600; font-size: 13px; color: var(--text); min-width: 85px; }
+  .day-label .date-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    display: block;
+  }
+  .week-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--accent2);
+    background: rgba(167,139,250,.12);
+    border-radius: 3px;
+    padding: 1px 5px;
+    display: inline-block;
+    margin-top: 2px;
+    letter-spacing: .04em;
+  }
+
+  input[type="time"], input[type="text"] {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 5px 7px;
+    border-radius: 5px;
+    width: 100%;
+    outline: none;
+    transition: border-color .2s;
+  }
+  input[type="time"]:focus, input[type="text"]:focus { border-color: var(--accent); }
+  input[type="time"] { min-width: 88px; max-width: 105px; }
+  input[type="text"] { min-width: 150px; }
+
+  .hours-cell {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--green);
+    min-width: 58px;
+    text-align: center;
+  }
+  .hours-cell.zero { color: var(--muted); }
+  .hours-cell.over { color: var(--orange); }
+
+  /* Absence selector styled */
+  .absence-wrap { display: flex; align-items: center; gap: 6px; }
+
+  .absence-select {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 5px 8px;
+    border-radius: 5px;
+    outline: none;
+    min-width: 115px;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .absence-select:focus { border-color: var(--accent); }
+
+  /* inline badge next to select */
+  .abs-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: .05em;
+    white-space: nowrap;
+    display: none;
+  }
+  .abs-badge.visible { display: inline-block; }
+
+  /* ---- TOTAL ROW ---- */
+  .total-row td {
+    background: var(--surface);
+    border-top: 2px solid var(--accent);
+    padding: 12px;
+    font-weight: 600;
+  }
+  .total-label { font-family: 'DM Serif Display', serif; font-size: 16px; color: var(--accent); }
+  .total-value { font-family: 'DM Mono', monospace; font-size: 22px; color: var(--accent); }
+
+  /* ---- BUTTONS ---- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #3a7de8; }
+  .btn-ghost { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--hover); }
+  .btn-green { background: var(--green); color: #0f1117; }
+  .btn-green:hover { background: #2bc485; }
+  .btn-export { background: #1e3a2a; color: var(--green); border: 1px solid #2a5a3a; }
+  .btn-export:hover { background: #254a34; }
+  .btn-import { background: #1e2a3a; color: var(--cyan); border: 1px solid #2a3a5a; }
+  .btn-import:hover { background: #253448; }
+  .btn-cyan { background: #38bdf8; color: #0f1117; }
+  .btn-cyan:hover { background: #29a8e0; }
+
+  /* Solde chips */
+  .solde-chip {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 200px;
+  }
+  .solde-code {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 4px;
+    letter-spacing: .05em;
+    flex-shrink: 0;
+  }
+  .solde-detail {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+  .solde-lbl { font-size: 10px; color: var(--muted); margin-left: 2px; }
+
+  /* Select Repas */
+  .repas-select {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 5px 7px;
+    border-radius: 5px;
+    outline: none;
+    min-width: 90px;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .repas-select:focus { border-color: var(--accent); }
+
+  /* Label ABSENT dans les cellules horaires */
+  .absent-label {
+    display: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: .03em;
+    padding: 4px 6px;
+    white-space: nowrap;
+  }
+
+  /* Séparateur vertical dans le header */
+  .hdr-sep { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+
+  /* Modal de confirmation import */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 32px;
+    max-width: 420px;
+    width: 90%;
+  }
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  .modal-body { color: var(--muted); font-size: 13px; line-height: 1.65; margin-bottom: 20px; }
+  .modal-body strong { color: var(--text); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* Info fichier chargé */
+  .load-info {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-left: 4px;
+  }
+
+  /* ---- VIEW TOGGLE ---- */
+  .view-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--input-bg);
+    border-radius: 7px;
+    padding: 3px;
+  }
+  .view-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .view-btn.active { background: var(--accent); color: #fff; }
+
+  .section { display: none; }
+  .section.visible { display: block; }
+
+  /* ---- ANNUAL VIEW ---- */
+  .annual-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .annual-month-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .annual-month-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .annual-month-card.active { border-color: var(--accent); }
+
+  .annual-month-name { font-family: 'DM Serif Display', serif; font-size: 17px; margin-bottom: 8px; }
+  .annual-hours { font-family: 'DM Mono', monospace; font-size: 26px; font-weight: 500; color: var(--accent); }
+  .annual-hours.zero { color: var(--muted); }
+  .annual-days { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .annual-abs-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .annual-abs-chip {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    letter-spacing: .04em;
+  }
+
+  .annual-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 12px; overflow: hidden; }
+  .annual-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s ease; }
+
+  .annual-total-card {
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-top: 24px;
+    display: flex;
+    gap: 32px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .annual-total-val { font-family: 'DM Mono', monospace; font-size: 38px; color: var(--accent); font-weight: 500; }
+  .annual-total-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-top: 4px; }
+
+  /* ---- HORLOGE HEADER ---- */
+  .header-clock {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    padding: 4px 14px;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    margin: 0 12px;
+  }
+  .header-clock #clockDate {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: capitalize;
+    letter-spacing: .04em;
+  }
+  .header-clock .clock-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: .05em;
+  }
+
+  /* ---- ALERTE JOURS NON SAISIS ---- */
+  tr.row-missing { background: rgba(251,146,60,.06) !important; border-left: 4px solid var(--orange) !important; }
+  tr.row-missing .day-label { color: var(--orange) !important; }
+  .missing-icon { color: var(--orange); font-size: 13px; margin-left: 4px; }
+
+  /* ---- RÉCAP ABSENCES ANNUEL ---- */
+  .abs-recap-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .abs-recap-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-width: 58px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+  }
+  .abs-recap-chip .arc-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .abs-recap-chip .arc-lbl { font-size: 9px; color: var(--muted); text-align: center; }
+
+  /* ---- PROFIL UTILISATEUR (en-tête impression) ---- */
+  .profile-modal-input {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    width: 100%;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .profile-modal-input:focus { border-color: var(--accent); }
+
+  /* En-tête impression */
+  .print-entete {
+    display: none;
+  }
+  @media print {
+    .print-entete {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+      border-bottom: 2px solid #4f8ef7;
+    }
+    .print-entete-left .nom { font-size: 16px; font-weight: bold; color: #1a1a2e; }
+    .print-entete-left .poste { font-size: 11px; color: #555; }
+    .print-entete-left .societe { font-size: 11px; color: #555; }
+    .print-entete-right { text-align: right; font-size: 11px; color: #555; }
+    .print-entete-right .periode { font-size: 13px; font-weight: bold; color: #1a1a2e; }
+  }
+
+  /* ---- NOTIF ---- */
+  .notif {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--green);
+    color: #0f1117;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all .3s;
+    z-index: 999;
+  }
+  .notif.show { transform: translateY(0); opacity: 1; }
+
+  .comment-input {
+    min-width: 160px !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 12px !important;
+    color: var(--muted) !important;
+  }
+  .comment-input:focus { color: var(--text) !important; }
+
+  /* ---- PRINT MODAL ---- */
+  .print-option {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 10px 0;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .print-option:hover { border-color: var(--accent); background: rgba(79,142,247,.08); }
+  .print-option-icon { font-size: 22px; margin-top: 2px; }
+  .print-option-body strong { font-size: 14px; display: block; margin-bottom: 3px; }
+  .print-option-body p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  .month-pick-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 11px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    transition: all .15s;
+  }
+  .month-pick-btn:hover { border-color: var(--accent); color: var(--text); }
+  .month-pick-btn.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ---- ÉCRAN DE CONNEXION FIREBASE ---- */
+  #loginOverlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  #loginOverlay.hidden { display: none; }
+
+  .login-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 40px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+  }
+  .login-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .login-logo span { color: var(--accent2); }
+  .login-sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+
+  .login-input {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 11px 14px;
+    border-radius: 8px;
+    width: 100%;
+    outline: none;
+    margin-bottom: 12px;
+    transition: border-color .2s;
+  }
+  .login-input:focus { border-color: var(--accent); }
+
+  .login-btn {
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    margin-bottom: 8px;
+  }
+  .login-btn-primary { background: var(--accent); color: #fff; }
+  .login-btn-primary:hover { background: #3a7de8; }
+  .login-btn-secondary { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .login-btn-secondary:hover { color: var(--text); border-color: var(--accent); }
+
+  .login-error {
+    color: var(--red);
+    font-size: 12px;
+    margin-bottom: 12px;
+    min-height: 16px;
+  }
+  .login-link {
+    color: var(--accent);
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+    margin-top: 8px;
+    display: inline-block;
+  }
+
+  .login-spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---- INDICATEUR SYNCHRO ---- */
+  .sync-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+  .sync-indicator.syncing { color: var(--accent); }
+  .sync-indicator.synced { color: var(--green); }
+  .sync-indicator.error { color: var(--red); }
+  .sync-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+  .sync-indicator.syncing .sync-dot { background: var(--accent); animation: pulse 1s infinite; }
+  .sync-indicator.synced .sync-dot { background: var(--green); }
+  .sync-indicator.error .sync-dot { background: var(--red); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+  /* ---- PRINT STYLES ---- */
+  @media print {
+    header, .nav-bar, .legend-bar, .header-controls,
+    .btn, .view-toggle, .modal-overlay, .notif,
+    #sectionAnnual { display: none !important; }
+
+    body { background: white !important; color: #111 !important; font-size: 11px; margin: 0; }
+    main { padding: 0 !important; max-width: 100% !important; }
+
+    /* Chaque bloc mois sur sa propre page */
+    .print-month-block { page-break-after: always; padding: 16px 0; }
+    .print-month-block:last-child { page-break-after: avoid; }
+
+    .print-month-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #1a1a2e;
+      border-bottom: 2px solid #4f8ef7;
+      padding-bottom: 6px;
+    }
+
+    .print-summary-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .print-summary-chip {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 5px 12px;
+      background: #f5f7ff;
+      font-size: 11px;
+    }
+    .print-summary-chip .val { font-weight: 700; color: #1a56db; }
+    .print-summary-chip .lbl { color: #666; font-size: 10px; }
+
+    table { border-collapse: collapse; width: 100%; font-size: 10px; }
+    thead th {
+      background: #e8ecf5 !important;
+      color: #333 !important;
+      border: 1px solid #bcc5d9 !important;
+      padding: 6px 8px !important;
+      font-size: 9px !important;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    tbody td { border: 1px solid #dde3f0 !important; padding: 5px 7px !important; color: #111 !important; }
+    tbody tr:nth-child(even) td { background: #f8f9fd !important; }
+    input[type="time"], input[type="text"] {
+      border: none !important; background: transparent !important;
+      color: #111 !important; font-size: 10px !important; padding: 0 !important;
+    }
+    .absence-select { background: transparent !important; border: none !important; color: #111 !important; font-size: 10px !important; padding: 0 !important; }
+    .abs-badge { font-size: 9px !important; padding: 1px 5px !important; border: 1px solid #ccc !important; background: #f0f0f0 !important; color: #333 !important; }
+    tr[class*="row-"] td { background: #f5f5f5 !important; }
+
+    .print-total-row td { background: #e8ecf5 !important; font-weight: 700; border: 1px solid #bcc5d9 !important; padding: 6px 8px !important; }
+    .total-label { color: #1a56db !important; font-size: 13px !important; }
+    .total-value { color: #1a56db !important; font-size: 15px !important; }
+
+    /* Récap annuel print */
+    .print-annual-recap { margin-bottom: 20px; page-break-after: always; }
+    .print-annual-recap h2 { font-size: 20px; color: #1a1a2e; border-bottom: 2px solid #4f8ef7; padding-bottom: 6px; margin-bottom: 14px; }
+    .print-annual-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .print-annual-card { border: 1px solid #ccc; border-radius: 6px; padding: 10px 12px; background: #f8f9fd; }
+    .print-annual-card .name { font-weight: 700; font-size: 12px; color: #1a1a2e; margin-bottom: 4px; }
+    .print-annual-card .hours { font-size: 18px; font-weight: 700; color: #1a56db; }
+    .print-annual-card .detail { font-size: 10px; color: #666; margin-top: 2px; }
+    .print-grand-total { margin-top: 16px; background: #e8ecf5; border-radius: 6px; padding: 12px 16px; display: flex; gap: 24px; flex-wrap: wrap; }
+    .print-grand-total .item .val { font-size: 22px; font-weight: 700; color: #1a56db; }
+    .print-grand-total .item .lbl { font-size: 10px; color: #666; text-transform: uppercase; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ÉCRAN DE CONNEXION FIREBASE -->
+<div id="loginOverlay">
+  <div class="login-box" id="loginBoxContent">
+    <div class="login-logo">FaPro<span>Time</span></div>
+    <div class="login-sub" id="loginSubtitle">Connectez-vous pour synchroniser vos données</div>
+
+    <div class="login-error" id="loginError"></div>
+
+    <input type="email" id="loginEmail" class="login-input" placeholder="Adresse email" autocomplete="email">
+    <input type="password" id="loginPassword" class="login-input" placeholder="Mot de passe" autocomplete="current-password">
+
+    <button class="login-btn login-btn-primary" id="loginBtnMain" onclick="handleLogin()">Se connecter</button>
+    <button class="login-btn login-btn-secondary" onclick="toggleLoginMode()" id="loginToggleBtn">Créer un compte</button>
+
+    <div class="login-link" onclick="handlePasswordReset()">Mot de passe oublié ?</div>
+  </div>
+  <div class="login-box" id="loginLoadingBox" style="display:none;">
+    <div class="login-logo">FaPro<span>Time</span></div>
+    <div style="margin:20px 0;"><span class="login-spinner" style="border-top-color:var(--accent);border-color:rgba(79,142,247,.2);width:28px;height:28px;border-width:3px;"></span></div>
+    <div class="login-sub" style="margin-bottom:0;">Chargement de vos données...</div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">FaPro<span>Time</span></div>
+  <div class="header-clock" id="headerClock">
+    <span id="clockDate">—</span>
+    <span id="clockTime" class="clock-time">--:--:--</span>
+  </div>
+  <div class="header-controls">
+    <span class="sync-indicator" id="syncIndicator"><span class="sync-dot"></span><span id="syncText">Hors ligne</span></span>
+    <div class="hdr-sep"></div>
+    <div class="view-toggle">
+      <button class="view-btn active" id="btnMonthly" onclick="setView('monthly')">Mensuel</button>
+      <button class="view-btn" id="btnAnnual" onclick="setView('annual')">Annuel</button>
+    </div>
+    <div class="hdr-sep"></div>
+    <button class="btn btn-import" onclick="triggerImport()" title="Charger un fichier de sauvegarde JSON">📂 Charger</button>
+    <button class="btn btn-export" onclick="exportData()" title="Exporter les données dans le dossier choisi">⬇️ Exporter</button>
+    <button class="btn btn-ghost" onclick="changeSaveFolder()" title="Changer le dossier de sauvegarde" style="font-size:11px;padding:5px 10px;">📁 Dossier</button>
+    <span id="folderIndicator" style="display:none;font-size:10px;color:var(--green);font-family:'DM Mono',monospace;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+    <div class="hdr-sep"></div>
+    <button class="btn btn-ghost" onclick="openPrintModal()">🖨️ Imprimer</button>
+    <button class="btn btn-green" onclick="saveAll()">💾 Sauvegarder</button>
+    <button class="btn btn-danger" onclick="handleLogout()" title="Se déconnecter" style="font-size:11px;padding:5px 10px;">🚪 Déconnexion</button>
+  </div>
+  <!-- Input fichier caché pour l'import -->
+  <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importData(event)">
+</header>
+
+<div class="nav-bar">
+  <span class="nav-label">Année</span>
+  <select class="nav-select" id="yearSelect" onchange="changeYear()"></select>
+  <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="goToToday()" title="Revenir au mois et à l'année actuels">📍 Aujourd'hui</button>
+  <span class="nav-label">Mois</span>
+  <div class="month-tabs" id="monthTabs"></div>
+  <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openObjectiveModal()" title="Définir l'objectif d'heures du mois">🎯 Objectif</button>
+    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openSoldesModal()" title="Gérer le solde de congés">🏖️ Soldes congés</button>
+    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openHorairesModal()" title="Définir mes horaires types">⚙️ Horaires types</button>
+    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openProfileModal()" title="Mon profil pour l'impression">👤 Mon profil</button>
+    <button class="btn btn-primary" style="font-size:12px;padding:5px 11px;" onclick="applyHorairesWeek()" title="Remplir la semaine avec les horaires types">⚡ Remplir semaine</button>
+  </div>
+</div>
+
+
+<main>
+  <!-- EN-TÊTE IMPRESSION (invisible à l'écran, visible à l'impression) -->
+  <div class="print-entete" id="printEntete">
+    <div class="print-entete-left">
+      <div class="nom" id="peNom"></div>
+      <div class="poste" id="pePoste"></div>
+      <div class="societe" id="peSociete"></div>
+    </div>
+    <div class="print-entete-right">
+      <div class="periode" id="pePeriode"></div>
+      <div id="peUser"></div>
+      <div>FaProTime</div>
+    </div>
+  </div>
+
+  <!-- VUE MENSUELLE -->
+  <div id="sectionMonthly" class="section visible">
+    <div class="month-header">
+      <div class="month-title" id="monthTitle">—</div>
+      <div class="month-summary">
+        <div class="summary-chip">
+          <div class="val" id="summaryDays">0</div>
+          <div class="lbl">Jours travaillés</div>
+        </div>
+        <div class="summary-chip">
+          <div class="val" id="summaryHours">0h00</div>
+          <div class="lbl">Total du mois</div>
+        </div>
+        <div class="summary-chip">
+          <div class="val" id="summaryExtra">0h00</div>
+          <div class="lbl">Heures suppl.</div>
+        </div>
+        <div class="summary-chip">
+          <div class="val" id="summaryAbsDays" style="color:#f5c842;">0</div>
+          <div class="lbl">Jours d'absence</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BARRE OBJECTIF MENSUEL -->
+    <div id="objectiveBar" style="display:none;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;margin-bottom:14px;flex-wrap:wrap;">
+      <span id="objBarTarget" style="font-size:12px;color:var(--muted);min-width:110px;">Objectif : —</span>
+      <div style="flex:1;min-width:160px;background:var(--border);border-radius:4px;height:8px;overflow:hidden;">
+        <div id="objBarFill" style="height:100%;width:0%;border-radius:4px;background:var(--accent);transition:width .4s ease;"></div>
+      </div>
+      <span id="objBarPct" style="font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:var(--accent);min-width:40px;">0%</span>
+      <span id="objBarDiff" style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--green);">—</span>
+    </div>
+
+    <!-- SOLDES CONGÉS -->
+    <div id="soldesBar" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <div class="solde-chip" id="solde_CA">
+        <div class="solde-code ab-CA">CA</div>
+        <div class="solde-detail"><span class="solde-init">—</span> <span class="solde-used" style="color:var(--muted);">-0j</span> <span style="color:var(--muted);">=</span> <span class="solde-left" style="color:var(--green);">—</span></div>
+        <div class="solde-lbl">Congé annuel</div>
+      </div>
+      <div class="solde-chip" id="solde_CT">
+        <div class="solde-code ab-CT">CT</div>
+        <div class="solde-detail"><span class="solde-init">—</span> <span class="solde-used" style="color:var(--muted);">-0j</span> <span style="color:var(--muted);">=</span> <span class="solde-left" style="color:var(--green);">—</span></div>
+        <div class="solde-lbl">Congé trimestriel</div>
+      </div>
+      <div class="solde-chip" id="solde_RTT">
+        <div class="solde-code ab-RTT">RTT</div>
+        <div class="solde-detail"><span class="solde-init">—</span> <span class="solde-used" style="color:var(--muted);">-0j</span> <span style="color:var(--muted);">=</span> <span class="solde-left" style="color:var(--green);">—</span></div>
+        <div class="solde-lbl">RTT</div>
+      </div>
+    </div>
+      <table id="planningTable">
+        <thead>
+          <tr>
+            <th>Jour</th>
+            <th>Début</th>
+            <th>Repas</th>
+            <th>Fin</th>
+            <th>Début +</th>
+            <th>Fin +</th>
+            <th>Total</th>
+            <th>Type d'absence</th>
+            <th>Commentaire</th>
+          </tr>
+        </thead>
+        <tbody id="planningBody"></tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="5"><span class="total-label">Total du mois</span></td>
+            <td colspan="4">
+              <span class="total-value" id="totalMonthFoot">0h00</span>
+              <span style="color:var(--muted);font-size:11px;margin-left:16px;" id="totalExtraFoot"></span>
+              <span style="color:#f5c842;font-size:11px;margin-left:12px;" id="totalAbsFoot"></span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+    <!-- GRAPHIQUE JOURNALIER -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">📊 Heures par jour</div>
+      <canvas id="hoursChart" style="width:100%;display:block;"></canvas>
+    </div>
+  </div>
+
+  <!-- MODAL OBJECTIF -->
+  <div class="modal-overlay" id="objectiveModal">
+    <div class="modal" style="max-width:380px;">
+      <div class="modal-title">🎯 Objectif mensuel</div>
+      <div class="modal-body">Définissez votre nombre d'heures contractuelles pour <strong id="objModalMonthLabel"></strong>. Une barre de progression s'affichera en temps réel.</div>
+      <div style="margin:16px 0;">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;">Objectif en heures (ex: 151.67 pour 151h40)</label>
+        <input type="number" id="objInput" step="0.01" min="0" placeholder="ex: 151.67"
+          style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:16px;padding:8px 12px;border-radius:6px;width:100%;outline:none;">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeObjectiveModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveObjective()">✅ Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SOLDES CONGÉS -->
+  <div class="modal-overlay" id="soldesModal">
+    <div class="modal" style="max-width:400px;">
+      <div class="modal-title">🏖️ Soldes de congés <span style="font-size:14px;color:var(--muted);" id="soldesYear"></span></div>
+      <div class="modal-body">Saisissez vos soldes de départ au 1er janvier. Le planning décompte automatiquement chaque absence posée.</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin:16px 0;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="legend-badge ab-CA" style="min-width:40px;justify-content:center;">CA</span>
+          <span style="font-size:13px;flex:1;">Congé annuel</span>
+          <input type="number" id="soldeCA" min="0" step="0.5" placeholder="jours" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:6px 10px;border-radius:6px;width:90px;outline:none;text-align:center;">
+          <span style="font-size:12px;color:var(--muted);">jours</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="legend-badge ab-CT" style="min-width:40px;justify-content:center;">CT</span>
+          <span style="font-size:13px;flex:1;">Congé trimestriel</span>
+          <input type="number" id="soldeCT" min="0" step="0.5" placeholder="jours" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:6px 10px;border-radius:6px;width:90px;outline:none;text-align:center;">
+          <span style="font-size:12px;color:var(--muted);">jours</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="legend-badge ab-RTT" style="min-width:40px;justify-content:center;">RTT</span>
+          <span style="font-size:13px;flex:1;">RTT</span>
+          <input type="number" id="soldeRTT" min="0" step="0.5" placeholder="jours" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:6px 10px;border-radius:6px;width:90px;outline:none;text-align:center;">
+          <span style="font-size:12px;color:var(--muted);">jours</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeSoldesModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveSoldesModal()">✅ Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL HORAIRES TYPES -->
+  <div class="modal-overlay" id="horairesModal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-title">⚙️ Mes horaires types</div>
+      <div class="modal-body">Définissez vos horaires habituels. Le bouton <strong>⚡ Remplir semaine</strong> les appliquera en un clic sur tous les jours ouvrés de la semaine courante.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;">
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Heure début</label>
+          <input type="time" id="htStart" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Heure fin</label>
+          <input type="time" id="htEnd" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Pause repas</label>
+          <select id="htLunch" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:7px 10px;border-radius:6px;width:100%;outline:none;cursor:pointer;">
+            <option value="0">— Aucun</option>
+            <option value="30">− 0h30</option>
+            <option value="60" selected>− 1h00</option>
+            <option value="90">− 1h30</option>
+            <option value="120">− 2h00</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Heures suppl.</label>
+          <div style="display:flex;gap:6px;">
+            <input type="time" id="htExtraStart" placeholder="Début" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:7px 6px;border-radius:6px;width:50%;outline:none;">
+            <input type="time" id="htExtraEnd" placeholder="Fin" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:7px 6px;border-radius:6px;width:50%;outline:none;">
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeHorairesModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveHorairesModal()">✅ Enregistrer</button>
+      </div>
+    </div>
+  </div>
+  <div id="sectionAnnual" class="section">
+    <div style="font-family:'DM Serif Display',serif;font-size:28px;margin-bottom:4px;" id="annualTitle">Vue Annuelle</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:8px;">Cliquez sur un mois pour y accéder</p>
+    <div class="annual-total-card">
+      <div>
+        <div class="annual-total-val" id="annualTotalHours">0h00</div>
+        <div class="annual-total-lbl">Total annuel</div>
+      </div>
+      <div>
+        <div class="annual-total-val" id="annualTotalDays" style="font-size:28px;color:var(--green);">0</div>
+        <div class="annual-total-lbl">Jours travaillés</div>
+      </div>
+      <div>
+        <div class="annual-total-val" id="annualTotalExtra" style="font-size:28px;color:var(--orange);">0h00</div>
+        <div class="annual-total-lbl">Heures supplémentaires</div>
+      </div>
+      <div>
+        <div class="annual-total-val" id="annualTotalAbs" style="font-size:28px;color:#f5c842;">0</div>
+        <div class="annual-total-lbl">Jours d'absence</div>
+      </div>
+    </div>
+    <div class="annual-grid" id="annualGrid"></div>
+
+    <!-- RÉCAP ABSENCES ANNUEL PAR TYPE -->
+    <div style="margin-top:20px;">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">📋 Cumul annuel par type d'absence</div>
+      <div class="abs-recap-grid" id="absRecapGrid"></div>
+    </div>
+  </div>
+
+  <!-- MODAL PROFIL UTILISATEUR -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-title">👤 Mon profil — En-tête impression</div>
+      <div class="modal-body">Ces informations apparaîtront automatiquement sur chaque document imprimé. L'année, le mois et l'utilisateur sont ajoutés automatiquement.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:16px 0;">
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Nom et Prénom</label>
+          <input type="text" id="profileNom" class="profile-modal-input" placeholder="Ex : Dupont Marie">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Poste / Fonction</label>
+          <input type="text" id="profilePoste" class="profile-modal-input" placeholder="Ex : Technicien, Infirmière...">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Société / Établissement</label>
+          <input type="text" id="profileSociete" class="profile-modal-input" placeholder="Ex : Entreprise XYZ">
+        </div>
+      </div>
+      <div style="background:var(--input-bg);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted);margin-bottom:16px;">
+        💡 <strong style="color:var(--text);">Automatique à l'impression :</strong> Année · Mois · Utilisateur actif
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeProfileModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveProfileModal()">✅ Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL IMPRESSION -->
+<div class="modal-overlay" id="printModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-title">🖨️ Options d'impression</div>
+    <div class="modal-body">Choisissez ce que vous souhaitez imprimer :</div>
+
+    <!-- Option 1 : Mois en cours -->
+    <div class="print-option" onclick="printCurrentMonth()">
+      <div class="print-option-icon">📋</div>
+      <div class="print-option-body">
+        <strong id="printOption1Label">Mois en cours</strong>
+        <p>Le tableau complet du mois affiché avec tous les horaires, absences et commentaires.</p>
+      </div>
+    </div>
+
+    <!-- Option 2 : Plusieurs mois -->
+    <div class="print-option" onclick="toggleMonthPicker()">
+      <div class="print-option-icon">📅</div>
+      <div class="print-option-body">
+        <strong>Sélectionner plusieurs mois</strong>
+        <p>Choisissez les mois à imprimer (un tableau par mois, chacun sur sa propre page).</p>
+      </div>
+    </div>
+    <!-- Sélecteur de mois -->
+    <div id="monthPicker" style="display:none;margin:10px 0 6px 0;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Sélectionnez les mois :</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;" id="monthPickerBtns"></div>
+      <button class="btn btn-cyan" style="margin-top:12px;width:100%;justify-content:center;" onclick="printSelectedMonths()">🖨️ Imprimer les mois sélectionnés</button>
+    </div>
+
+    <!-- Option 3 : Année complète -->
+    <div class="print-option" onclick="printFullYear()">
+      <div class="print-option-icon">📆</div>
+      <div class="print-option-body">
+        <strong id="printOption3Label">Année complète en tableau</strong>
+        <p>Tous les mois de l'année, chacun sur sa propre page, avec le récapitulatif annuel en première page.</p>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn btn-ghost" onclick="closePrintModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-title">⚠️ Charger une sauvegarde</div>
+    <div class="modal-body" id="importModalBody">
+      Vous êtes sur le point de charger le fichier :<br>
+      <strong id="importFileName">—</strong><br><br>
+      Cela va <strong>remplacer toutes les données actuelles</strong> par celles du fichier. Cette action est irréversible.<br><br>
+      Voulez-vous continuer ?
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeImportModal()">Annuler</button>
+      <button class="btn btn-cyan" onclick="confirmImport()">✅ Charger quand même</button>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif">✓ Sauvegardé</div>
+
+<script>
+// ===================== CONFIG =====================
+const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const DAYS_MAP = {1:'Lundi',2:'Mardi',3:'Mercredi',4:'Jeudi',5:'Vendredi'};
+const NORMAL_HOURS_DAY = 7; // heures normales / jour
+
+// Définition complète des absences
+const ABSENCES = [
+  { code: '—',   label: '— Aucune',                    cls: '',        full: '' },
+  // ── Maladie & accidents ──
+  { code: 'MAL', label: '🔴 MAL · Maladie',             cls: 'ab-MAL',  full: 'Maladie' },
+  { code: 'ACC', label: '🟠 ACC · Accident travail',     cls: 'ab-ACC',  full: 'Accident du travail' },
+  // ── Congés classiques ──
+  { code: 'CA',  label: '🔵 CA · Congé annuel',          cls: 'ab-CA',   full: 'Congé annuel' },
+  { code: 'CT',  label: '🟡 CT · Congé trimestriel',     cls: 'ab-CT',   full: 'Congé trimestriel' },
+  { code: 'RTT', label: '🟣 RTT',                        cls: 'ab-RTT',  full: 'RTT' },
+  { code: 'FER', label: '🟢 FER · Jour férié',           cls: 'ab-FER',  full: 'Jour férié' },
+  // ── Congés familiaux ──
+  { code: 'MAT', label: '🌸 MAT · Congé maternité',      cls: 'ab-MAT',  full: 'Congé maternité' },
+  { code: 'PAT', label: '👶 PAT · Congé paternité',      cls: 'ab-PAT',  full: 'Congé paternité' },
+  { code: 'NAI', label: '🌟 NAI · Congé naissance',      cls: 'ab-NAI',  full: 'Congé de naissance' },
+  { code: 'PAR', label: '🤱 PAR · Congé parental',       cls: 'ab-PAR',  full: 'Congé parental' },
+  { code: 'DEU', label: '🖤 DEU · Congé décès',          cls: 'ab-DEU',  full: 'Congé décès' },
+  { code: 'MAR', label: '💜 MAR · Mariage / PACS',       cls: 'ab-MAR',  full: 'Congé mariage / PACS' },
+  // ── Statuts journée ──
+  { code: 'FOR', label: '🩵 FOR · Formation',            cls: 'ab-FOR',  full: 'Formation' },
+  { code: 'DÉP', label: '🟠 DÉP · Déplacement pro',      cls: 'ab-DEP',  full: 'Déplacement professionnel' },
+  { code: 'AST', label: '🔴 AST · Astreinte',            cls: 'ab-AST',  full: 'Astreinte' },
+  { code: 'TÉL', label: '🩵 TÉL · Télétravail',          cls: 'ab-TEL',  full: 'Télétravail' },
+  // ── Autre ──
+  { code: 'ABS', label: '⬛ ABS · Absence injustifiée',  cls: 'ab-ABS',  full: 'Absence injustifiée' },
+];
+
+const ABS_MAP = {};
+ABSENCES.forEach(a => { ABS_MAP[a.code] = a; });
+
+// ===================== DATA LAYER (mono-utilisateur) =====================
+// Déclarées ICI avant Firebase pour être disponibles dès onAuthStateChanged
+let data          = {};
+let objectives    = {};
+let soldes        = {};
+let horairesTypes = null;
+let profileData   = {};
+let currentYear   = new Date().getFullYear();
+let currentMonth  = new Date().getMonth();
+
+// ===================== FIREBASE CONFIG & SYNC =====================
+const firebaseConfig = {
+  apiKey: "AIzaSyCJ6EK3Kt05lmaq9J9nSIQ_27PCRAAs5ZM",
+  authDomain: "faprotime.firebaseapp.com",
+  projectId: "faprotime",
+  storageBucket: "faprotime.firebasestorage.app",
+  messagingSenderId: "1065278853167",
+  appId: "1:1065278853167:web:12de66478f15480fa976da"
+};
+
+firebase.initializeApp(firebaseConfig);
+const fbAuth = firebase.auth();
+const fbDb = firebase.firestore();
+
+let currentFbUser = null;     // utilisateur Firebase connecté
+let isLoginMode = false;      // false = connexion, true = création de compte
+let syncTimeout = null;       // pour debounce la sauvegarde cloud
+let isLoadingFromCloud = false; // évite boucle pendant chargement initial
+
+// ---- UI Helpers ----
+function setSyncStatus(status, text) {
+  const el = document.getElementById('syncIndicator');
+  const txt = document.getElementById('syncText');
+  if (!el) return;
+  el.className = `sync-indicator ${status}`;
+  txt.textContent = text;
+}
+
+function showLoginError(msg) {
+  document.getElementById('loginError').textContent = msg;
+}
+
+function toggleLoginMode() {
+  isLoginMode = !isLoginMode;
+  showLoginError('');
+  if (isLoginMode) {
+    document.getElementById('loginBtnMain').textContent = 'Créer mon compte';
+    document.getElementById('loginToggleBtn').textContent = 'J\'ai déjà un compte — Se connecter';
+    document.getElementById('loginSubtitle').textContent = 'Créez votre compte pour synchroniser vos données';
+  } else {
+    document.getElementById('loginBtnMain').textContent = 'Se connecter';
+    document.getElementById('loginToggleBtn').textContent = 'Créer un compte';
+    document.getElementById('loginSubtitle').textContent = 'Connectez-vous pour synchroniser vos données';
+  }
+}
+
+// ---- Connexion / Création de compte ----
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  showLoginError('');
+
+  if (!email || !password) {
+    showLoginError('⚠️ Remplissez email et mot de passe');
+    return;
+  }
+  if (password.length < 6) {
+    showLoginError('⚠️ Le mot de passe doit faire au moins 6 caractères');
+    return;
+  }
+
+  const btn = document.getElementById('loginBtnMain');
+  const originalText = btn.textContent;
+  btn.innerHTML = '<span class="login-spinner"></span>Patientez...';
+  btn.disabled = true;
+
+  try {
+    if (isLoginMode) {
+      await fbAuth.createUserWithEmailAndPassword(email, password);
+    } else {
+      await fbAuth.signInWithEmailAndPassword(email, password);
+    }
+    // onAuthStateChanged prendra le relais
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = originalText;
+    showLoginError(translateFirebaseError(err.code));
+  }
+}
+
+function translateFirebaseError(code) {
+  const map = {
+    'auth/invalid-email': '⚠️ Adresse email invalide',
+    'auth/user-not-found': '⚠️ Aucun compte avec cet email',
+    'auth/wrong-password': '⚠️ Mot de passe incorrect',
+    'auth/invalid-credential': '⚠️ Email ou mot de passe incorrect',
+    'auth/email-already-in-use': '⚠️ Cet email a déjà un compte — connectez-vous',
+    'auth/weak-password': '⚠️ Mot de passe trop faible (6 caractères min.)',
+    'auth/network-request-failed': '⚠️ Pas de connexion internet',
+    'auth/too-many-requests': '⚠️ Trop de tentatives, réessayez plus tard',
+  };
+  return map[code] || `⚠️ Erreur : ${code}`;
+}
+
+async function handlePasswordReset() {
+  const email = document.getElementById('loginEmail').value.trim();
+  if (!email) { showLoginError('⚠️ Saisissez votre email puis cliquez à nouveau'); return; }
+  try {
+    await fbAuth.sendPasswordResetEmail(email);
+    showLoginError('');
+    alert('✅ Email de réinitialisation envoyé à ' + email);
+  } catch (err) {
+    showLoginError(translateFirebaseError(err.code));
+  }
+}
+
+function handleLogout() {
+  if (!confirm('Se déconnecter ? Vos données restent sauvegardées dans le cloud.')) return;
+  collectCurrentMonth();
+  persistDataLocal();
+  // Annuler toute synchro en attente pour éviter une erreur de permission après déconnexion
+  clearTimeout(syncTimeout);
+  fbAuth.signOut();
+}
+
+// ---- Surveillance de l'état de connexion ----
+fbAuth.onAuthStateChanged(async (user) => {
+  if (user) {
+    currentFbUser = user;
+    setSyncStatus('syncing', 'Synchronisation...');
+    document.getElementById('loginBoxContent').style.display = 'none';
+    document.getElementById('loginLoadingBox').style.display = 'block';
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    try {
+      await loadFromCloud();
+      init();
+      setSyncStatus('synced', 'Synchronisé');
+    } catch (err) {
+      console.error('Erreur init après connexion', err);
+      setSyncStatus('error', 'Erreur de chargement');
+    } finally {
+      // Toujours masquer l'écran de connexion et réactiver le bouton, même en cas d'erreur
+      document.getElementById('loginOverlay').classList.add('hidden');
+      document.getElementById('loginLoadingBox').style.display = 'none';
+      document.getElementById('loginBoxContent').style.display = 'block';
+      resetLoginForm();
+    }
+  } else {
+    currentFbUser = null;
+    // Réinitialiser tout l'état
+    data = {};
+    objectives = {};
+    soldes = {};
+    horairesTypes = null;
+    profileData = {};
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    document.getElementById('loginLoadingBox').style.display = 'none';
+    document.getElementById('loginBoxContent').style.display = 'block';
+    resetLoginForm();
+    setSyncStatus('', 'Hors ligne');
+  }
+});
+
+function resetLoginForm() {
+  const btn = document.getElementById('loginBtnMain');
+  btn.disabled = false;
+  btn.textContent = isLoginMode ? 'Créer mon compte' : 'Se connecter';
+  document.getElementById('loginPassword').value = '';
+  showLoginError('');
+}
+
+// ---- Chargement depuis Firestore ----
+async function loadFromCloud() {
+  isLoadingFromCloud = true;
+  try {
+    const docRef = fbDb.collection('plannings').doc(currentFbUser.uid);
+    const doc = await docRef.get();
+    if (doc.exists) {
+      const d = doc.data();
+      data          = d.data          || {};
+      objectives    = d.objectives    || {};
+      soldes        = d.soldes        || {};
+      horairesTypes = d.horairesTypes || null;
+      profileData   = d.profileData   || {};
+    } else {
+      loadLocalRaw();
+    }
+  } catch (err) {
+    console.warn('Erreur chargement cloud, utilisation locale', err);
+    loadLocalRaw();
+    setSyncStatus('error', 'Hors ligne (local)');
+  }
+  isLoadingFromCloud = false;
+}
+
+// ---- Sauvegarde vers Firestore (avec debounce 1.2s) ----
+function syncToCloud() {
+  if (!currentFbUser || isLoadingFromCloud) return;
+  setSyncStatus('syncing', 'Synchronisation...');
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(async () => {
+    try {
+      await fbDb.collection('plannings').doc(currentFbUser.uid).set({
+        data, objectives, soldes, horairesTypes, profileData,
+        updatedAt: new Date().toISOString()
+      });
+      setSyncStatus('synced', 'Synchronisé');
+    } catch (err) {
+      console.warn('Erreur sync cloud', err);
+      setSyncStatus('error', 'Erreur de synchro');
+    }
+  }, 1200);
+}
+
+
+// ===================== DATA LAYER (mono-utilisateur) =====================
+// Structure Firestore : { data, objectives, soldes, horairesTypes, profileData, updatedAt }
+// Variables déclarées plus haut avant Firebase (ordre important)
+
+// ---- Accès simplifié ----
+function getData()          { return data; }
+function setData(d)         { data = d; }
+function getObjectives()    { return objectives; }
+function setObjective(k,v)  { objectives[k] = v; }
+function getSoldesAll()     { return soldes; }
+function setSoldesYear(y,s) { soldes[y] = s; }
+function getHT()            { return horairesTypes; }
+function setHT(h)           { horairesTypes = h; }
+function getProfile()       { return profileData; }
+function saveProfile(p)     { profileData = p; persistData(); }
+
+function getMonthObjective() {
+  const key = `obj_${currentYear}_${currentMonth}`;
+  return parseFloat(objectives[key] || '0');
+}
+function saveMonthObjective(val) {
+  const key = `obj_${currentYear}_${currentMonth}`;
+  objectives[key] = val;
+  persistData();
+}
+function getSoldes() { return soldes[currentYear] || {}; }
+function saveSoldes(s) { soldes[currentYear] = s; persistData(); }
+function getHorairesTypes() { return horairesTypes; }
+function saveHorairesTypes(h) { horairesTypes = h; persistData(); }
+
+// ---- Persistance locale ----
+function persistDataLocal() {
+  const store = { data, objectives, soldes, horairesTypes, profileData };
+  localStorage.setItem('faprotime_v4', JSON.stringify(store));
+}
+
+function persistData() {
+  persistDataLocal();
+  syncToCloud();
+}
+
+function loadLocalRaw() {
+  try {
+    const raw = localStorage.getItem('faprotime_v4');
+    if (raw) {
+      const store = JSON.parse(raw);
+      data          = store.data          || {};
+      objectives    = store.objectives    || {};
+      soldes        = store.soldes        || {};
+      horairesTypes = store.horairesTypes || null;
+      profileData   = store.profileData   || {};
+    } else {
+      // Tentative de migration depuis l'ancien format multi-user (v3)
+      const old = localStorage.getItem('planning_v3');
+      if (old) {
+        const oldStore = JSON.parse(old);
+        const uid = oldStore.currentUserId;
+        if (uid && oldStore.allData && oldStore.allData[uid]) {
+          data = oldStore.allData[uid];
+          objectives = (oldStore.allObjectives && oldStore.allObjectives[uid]) || {};
+          soldes = (oldStore.allSoldes && oldStore.allSoldes[uid]) || {};
+          horairesTypes = (oldStore.allHorairesTypes && oldStore.allHorairesTypes[uid]) || null;
+        }
+      }
+    }
+  } catch(e) { console.warn('Erreur lecture locale', e); }
+}
+
+function loadData() {
+  // Déjà chargé depuis cloud ou local par loadFromCloud() — rien à faire ici
+  // (compatibility stub)
+}
+
+function saveAll() {
+  collectCurrentMonth();
+  persistData();
+  showNotif('💾 Sauvegardé');
+  updateMonthTabs();
+}
+
+function showNotif(msg) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 2400);
+}
+
+// ---- Saveobj ----
+function saveObjective() {
+  const val = parseFloat(document.getElementById('objInput').value);
+  if (!isNaN(val) && val > 0) {
+    saveMonthObjective(val);
+  } else {
+    const key = `obj_${currentYear}_${currentMonth}`;
+    delete objectives[key];
+    persistData();
+  }
+  closeObjectiveModal();
+  updateMonthSummary();
+}
+
+
+
+// ===================== INIT =====================
+function init() {
+  loadData();
+  buildYearSelect();
+  currentYear  = new Date().getFullYear();
+  currentMonth = new Date().getMonth();
+  buildMonthTabs();
+  renderMonth();
+  startClock();
+}
+
+function buildYearSelect() {
+  const sel = document.getElementById('yearSelect');
+  sel.innerHTML = '';
+  for (let y = 2020; y <= 2100; y++) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    if (y === currentYear) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function changeYear() {
+  collectCurrentMonth();
+  currentYear = parseInt(document.getElementById('yearSelect').value);
+  buildMonthTabs();
+  renderMonth();
+  if (document.getElementById('sectionAnnual').classList.contains('visible')) renderAnnual();
+}
+
+function buildMonthTabs() {
+  const tabs = document.getElementById('monthTabs');
+  tabs.innerHTML = '';
+  MONTHS.forEach((m, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'month-tab';
+    btn.id = `tab_${i}`;
+    btn.textContent = m.substring(0,3);
+    btn.onclick = () => selectMonth(i);
+    tabs.appendChild(btn);
+  });
+  updateMonthTabs();
+}
+
+function updateMonthTabs() {
+  MONTHS.forEach((_, i) => {
+    const btn = document.getElementById(`tab_${i}`);
+    if (!btn) return;
+    btn.className = 'month-tab';
+    const yData = data[currentYear];
+    if (yData && yData[i] && Object.keys(yData[i]).length > 0) btn.classList.add('has-data');
+    if (i === currentMonth) btn.classList.add('active');
+  });
+}
+
+function selectMonth(i) {
+  collectCurrentMonth();
+  currentMonth = i;
+  updateMonthTabs();
+  renderMonth();
+  setView('monthly');
+}
+
+// ===================== WORK DAYS =====================
+function getWorkDays(year, month) {
+  const days = [];
+  const d = new Date(year, month, 1);
+  while (d.getMonth() === month) {
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) days.push(new Date(d));
+    d.setDate(d.getDate() + 1);
+  }
+  return days;
+}
+
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getRowData(dkey) {
+  return (data[currentYear] && data[currentYear][currentMonth] && data[currentYear][currentMonth][dkey]) || {};
+}
+
+// ===================== RENDER MONTH =====================
+function renderMonth() {
+  document.getElementById('monthTitle').textContent = `${MONTHS[currentMonth]} ${currentYear}`;
+  const days = getWorkDays(currentYear, currentMonth);
+  const tbody = document.getElementById('planningBody');
+  tbody.innerHTML = '';
+
+  days.forEach(d => {
+    const dkey = dateKey(d);
+    const saved = getRowData(dkey);
+    const dow = d.getDay();
+    const dayName = DAYS_MAP[dow] || '';
+
+    const tr = document.createElement('tr');
+    tr.dataset.dkey = dkey;
+
+    // Appliquer couleur de ligne si absence sauvegardée
+    const savedAbs = saved.absence || '—';
+    if (savedAbs !== '—') tr.classList.add(`row-${savedAbs}`);
+
+    // Jour + numéro de semaine
+    const weekNum = getWeekNumber(d);
+    const tdDay = document.createElement('td');
+    tdDay.innerHTML = `<div class="day-label">${dayName}<span class="date-num">${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</span><span class="week-num">S${weekNum}</span></div>`;
+    tr.appendChild(tdDay);
+
+    // Champs horaires : Début, puis select Repas, puis Fin, Début+, Fin+
+    // Début
+    ['start'].forEach(field => {
+      const td = document.createElement('td');
+      const inp = document.createElement('input');
+      inp.type = 'time';
+      inp.dataset.field = field;
+      inp.dataset.dkey = dkey;
+      inp.value = saved[field] || '';
+      inp.oninput = () => { autoSaveRow(dkey); recalcRow(dkey); };
+      td.appendChild(inp);
+      tr.appendChild(td);
+    });
+
+    // Select Repas (remplace Fin repas + Reprise)
+    const tdRepas = document.createElement('td');
+    const selRepas = document.createElement('select');
+    selRepas.className = 'repas-select';
+    selRepas.dataset.field = 'lunchBreak';
+    selRepas.dataset.dkey = dkey;
+    [
+      { val: '0',   txt: '— Aucun' },
+      { val: '30',  txt: '− 0h30' },
+      { val: '60',  txt: '− 1h00' },
+      { val: '90',  txt: '− 1h30' },
+      { val: '120', txt: '− 2h00' },
+    ].forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o.val;
+      opt.textContent = o.txt;
+      if (String(saved.lunchBreak || '0') === o.val) opt.selected = true;
+      selRepas.appendChild(opt);
+    });
+    selRepas.onchange = () => { autoSaveRow(dkey); recalcRow(dkey); };
+    tdRepas.appendChild(selRepas);
+    tr.appendChild(tdRepas);
+
+    // Fin, Début+, Fin+
+    ['end','extraStart','extraEnd'].forEach(field => {
+      const td = document.createElement('td');
+      const inp = document.createElement('input');
+      inp.type = 'time';
+      inp.dataset.field = field;
+      inp.dataset.dkey = dkey;
+      inp.value = saved[field] || '';
+      inp.oninput = () => { autoSaveRow(dkey); recalcRow(dkey); };
+      td.appendChild(inp);
+      tr.appendChild(td);
+    });
+
+    // Total heures
+    const tdH = document.createElement('td');
+    tdH.className = 'hours-cell zero';
+    tdH.id = `hours_${dkey}`;
+    tdH.textContent = '0h00';
+    tr.appendChild(tdH);
+
+    // Absence — select + badge
+    const tdAbs = document.createElement('td');
+    const wrap = document.createElement('div');
+    wrap.className = 'absence-wrap';
+
+    const sel = document.createElement('select');
+    sel.className = 'absence-select';
+    sel.dataset.field = 'absence';
+    sel.dataset.dkey = dkey;
+    ABSENCES.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.code;
+      opt.textContent = a.label;
+      if (a.code === savedAbs) opt.selected = true;
+      sel.appendChild(opt);
+    });
+
+    const badge = document.createElement('span');
+    badge.className = 'abs-badge';
+    badge.id = `badge_${dkey}`;
+
+    sel.onchange = () => {
+      applyAbsenceStyle(tr, sel.value, badge);
+      autoSaveRow(dkey);
+      updateMonthSummary();
+    };
+
+    wrap.appendChild(sel);
+    wrap.appendChild(badge);
+    tdAbs.appendChild(wrap);
+    tr.appendChild(tdAbs);
+
+    // Appliquer badge initial
+    applyAbsenceStyle(tr, savedAbs, badge);
+
+    // Commentaire
+    const tdCom = document.createElement('td');
+    const inp2 = document.createElement('input');
+    inp2.type = 'text';
+    inp2.className = 'comment-input';
+    inp2.placeholder = 'Commentaire...';
+    inp2.dataset.field = 'comment';
+    inp2.dataset.dkey = dkey;
+    inp2.value = saved.comment || '';
+    inp2.oninput = () => autoSaveRow(dkey);
+    tdCom.appendChild(inp2);
+    tr.appendChild(tdCom);
+
+    tbody.appendChild(tr);
+    recalcRow(dkey);
+  });
+
+  updateMonthSummary();
+}
+
+// ===================== ABSENCE STYLE =====================
+function applyAbsenceStyle(tr, code, badge) {
+  // Retirer toutes les classes row-*
+  tr.className = tr.className.replace(/\brow-\S+/g, '').trim();
+
+  const timeFields = ['start','lunchBreak','end','extraStart','extraEnd'];
+  const hoursCell = tr.querySelector('.hours-cell');
+
+  if (code && code !== '—') {
+    // Barre colorée
+    tr.classList.add(`row-${code}`);
+    const absInfo = ABS_MAP[code];
+    if (absInfo && absInfo.cls) {
+      badge.className = `abs-badge ${absInfo.cls} visible`;
+      badge.textContent = code;
+    }
+
+    // Masquer les inputs horaires et afficher "ABSENT"
+    timeFields.forEach(field => {
+      const inp = tr.querySelector(`[data-field="${field}"]`);
+      if (!inp) return;
+      inp.dataset.savedVal = inp.value; // sauvegarder la valeur
+      inp.value = '';
+      inp.disabled = true;
+      inp.style.display = 'none';
+
+      // Créer ou afficher le label ABSENT si pas déjà là
+      let lbl = inp.parentElement.querySelector('.absent-label');
+      if (!lbl) {
+        lbl = document.createElement('span');
+        lbl.className = 'absent-label';
+        inp.parentElement.appendChild(lbl);
+      }
+      // N'afficher le mot que sur la première cellule (start)
+      lbl.textContent = field === 'start' ? (absInfo ? absInfo.full : 'Absent') : '';
+      lbl.style.display = 'inline';
+    });
+
+    // Cellule total : vide
+    if (hoursCell) { hoursCell.textContent = '—'; hoursCell.className = 'hours-cell zero'; }
+
+  } else {
+    // Remettre les inputs horaires
+    badge.className = 'abs-badge';
+    badge.textContent = '';
+
+    timeFields.forEach(field => {
+      const inp = tr.querySelector(`[data-field="${field}"]`);
+      if (!inp) return;
+      inp.disabled = false;
+      inp.style.display = '';
+      if (inp.dataset.savedVal !== undefined) inp.value = inp.dataset.savedVal;
+
+      const lbl = inp.parentElement.querySelector('.absent-label');
+      if (lbl) lbl.style.display = 'none';
+    });
+
+    // Recalculer le total
+    const dkey = tr.dataset.dkey;
+    if (dkey) recalcRow(dkey);
+  }
+}
+
+// ===================== CALCUL =====================
+function timeToMin(t) {
+  if (!t) return null;
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function minToStr(m) {
+  if (m === null || m <= 0) return '0h00';
+  return `${Math.floor(m/60)}h${String(m%60).padStart(2,'0')}`;
+}
+
+function calcRowMinutes(dkey) {
+  const row = document.querySelector(`tr[data-dkey="${dkey}"]`);
+  if (!row) return 0;
+  const get = f => { const el = row.querySelector(`[data-field="${f}"]`); return el ? el.value : ''; };
+
+  const start      = timeToMin(get('start'));
+  const end        = timeToMin(get('end'));
+  const lunchBreak = parseInt(get('lunchBreak') || '0');
+  const extraStart = timeToMin(get('extraStart'));
+  const extraEnd   = timeToMin(get('extraEnd'));
+
+  let total = 0;
+  if (start !== null && end !== null) total += Math.max(0, end - start - lunchBreak);
+  if (extraStart !== null && extraEnd !== null) total += Math.max(0, extraEnd - extraStart);
+  return total;
+}
+
+function calcFromSaved(saved) {
+  const s  = timeToMin(saved.start);
+  const e  = timeToMin(saved.end);
+  const lb = parseInt(saved.lunchBreak || '0');
+  const es = timeToMin(saved.extraStart);
+  const ee = timeToMin(saved.extraEnd);
+  let total = 0;
+  if (s !== null && e !== null) total += Math.max(0, e - s - lb);
+  if (es !== null && ee !== null) total += Math.max(0, ee - es);
+  return total;
+}
+
+function recalcRow(dkey) {
+  const total = calcRowMinutes(dkey);
+  const cell = document.getElementById(`hours_${dkey}`);
+  if (!cell) return;
+  if (total === 0) { cell.textContent = '0h00'; cell.className = 'hours-cell zero'; }
+  else if (total > NORMAL_HOURS_DAY * 60) { cell.textContent = minToStr(total); cell.className = 'hours-cell over'; }
+  else { cell.textContent = minToStr(total); cell.className = 'hours-cell'; }
+  updateMonthSummary();
+}
+
+function updateMonthSummary() {
+  const days = getWorkDays(currentYear, currentMonth);
+  let totalMin = 0, workedDays = 0, extraMin = 0, absDays = 0;
+
+  days.forEach(d => {
+    const dkey = dateKey(d);
+    const m = calcRowMinutes(dkey);
+    const row = document.querySelector(`tr[data-dkey="${dkey}"]`);
+    const absSel = row ? row.querySelector('[data-field="absence"]') : null;
+    const absVal = absSel ? absSel.value : '—';
+
+    if (m > 0) { totalMin += m; workedDays++; const ex = m - NORMAL_HOURS_DAY*60; if (ex > 0) extraMin += ex; }
+    if (absVal !== '—') absDays++;
+  });
+
+  document.getElementById('summaryDays').textContent = workedDays;
+  document.getElementById('summaryHours').textContent = minToStr(totalMin);
+  document.getElementById('summaryExtra').textContent = minToStr(extraMin);
+  document.getElementById('summaryAbsDays').textContent = absDays;
+  document.getElementById('totalMonthFoot').textContent = minToStr(totalMin);
+  document.getElementById('totalExtraFoot').textContent = extraMin > 0 ? `dont ${minToStr(extraMin)} suppl.` : '';
+  document.getElementById('totalAbsFoot').textContent = absDays > 0 ? `${absDays} jour(s) d'absence` : '';
+
+  // Nouvelles fonctions
+  renderObjectiveBar(totalMin);
+  renderSoldes();
+  renderChart(days);
+  checkMissingDays();
+  updatePrintHeader();
+}
+
+// ===================== AUTO-SAVE =====================
+function autoSaveRow(dkey) {
+  const row = document.querySelector(`tr[data-dkey="${dkey}"]`);
+  if (!row) return;
+  if (!data[currentYear]) data[currentYear] = {};
+  if (!data[currentYear][currentMonth]) data[currentYear][currentMonth] = {};
+  const rowData = {};
+  row.querySelectorAll('[data-field]').forEach(el => { rowData[el.dataset.field] = el.value; });
+  data[currentYear][currentMonth][dkey] = rowData;
+  persistData();
+  updateMonthTabs();
+}
+
+function collectCurrentMonth() {
+  document.querySelectorAll('#planningBody tr[data-dkey]').forEach(row => autoSaveRow(row.dataset.dkey));
+}
+
+// ===================== VUE ANNUELLE =====================
+function renderAnnual() {
+  document.getElementById('annualTitle').textContent = `Vue Annuelle ${currentYear}`;
+  const grid = document.getElementById('annualGrid');
+  grid.innerHTML = '';
+
+  let yearTotal = 0, yearDays = 0, yearExtra = 0, yearAbs = 0;
+  let maxMonth = 0;
+
+  const monthTotals = MONTHS.map((_, mi) => {
+    const days = getWorkDays(currentYear, mi);
+    let total = 0, worked = 0, extra = 0, abs = 0;
+    const absCounts = {};
+
+    days.forEach(d => {
+      const dkey = dateKey(d);
+      const saved = (data[currentYear] && data[currentYear][mi] && data[currentYear][mi][dkey]) || {};
+      const mins = calcFromSaved(saved);
+      if (mins > 0) { total += mins; worked++; const ex = mins - NORMAL_HOURS_DAY*60; if (ex > 0) extra += ex; }
+      if (saved.absence && saved.absence !== '—') {
+        abs++;
+        absCounts[saved.absence] = (absCounts[saved.absence] || 0) + 1;
+      }
+    });
+
+    if (total > maxMonth) maxMonth = total;
+    yearTotal += total; yearDays += worked; yearExtra += extra; yearAbs += abs;
+    return { total, worked, extra, abs, absCounts };
+  });
+
+  document.getElementById('annualTotalHours').textContent = minToStr(yearTotal);
+  document.getElementById('annualTotalDays').textContent = yearDays;
+  document.getElementById('annualTotalExtra').textContent = minToStr(yearExtra);
+  document.getElementById('annualTotalAbs').textContent = yearAbs;
+
+  MONTHS.forEach((m, mi) => {
+    const { total, worked, extra, absCounts } = monthTotals[mi];
+    const card = document.createElement('div');
+    card.className = 'annual-month-card' + (mi === currentMonth ? ' active' : '');
+    card.onclick = () => selectMonth(mi);
+    const pct = maxMonth > 0 ? Math.round((total / maxMonth) * 100) : 0;
+
+    let chipsHtml = '';
+    Object.entries(absCounts).forEach(([code, count]) => {
+      const info = ABS_MAP[code];
+      if (info && info.cls) chipsHtml += `<span class="annual-abs-chip ${info.cls}">${code} ×${count}</span>`;
+    });
+
+    card.innerHTML = `
+      <div class="annual-month-name">${m}</div>
+      <div class="annual-hours ${total === 0 ? 'zero' : ''}">${minToStr(total)}</div>
+      <div class="annual-days">${worked} jour${worked>1?'s':''} travaillé${worked>1?'s':''}${extra > 0 ? ` · +${minToStr(extra)} suppl.` : ''}</div>
+      ${chipsHtml ? `<div class="annual-abs-chips">${chipsHtml}</div>` : ''}
+      <div class="annual-bar"><div class="annual-bar-fill" style="width:${pct}%"></div></div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Récap absences annuel par type
+  renderAbsRecap();
+}
+
+// ===================== VIEW TOGGLE =====================
+function setView(v) {
+  document.getElementById('sectionMonthly').className = 'section' + (v==='monthly'?' visible':'');
+  document.getElementById('sectionAnnual').className  = 'section' + (v==='annual'?' visible':'');
+  document.getElementById('btnMonthly').className = 'view-btn' + (v==='monthly'?' active':'');
+  document.getElementById('btnAnnual').className  = 'view-btn' + (v==='annual'?' active':'');
+  if (v === 'annual') renderAnnual();
+}
+
+// ===================== EXPORT / IMPORT =====================
+
+let savedDirHandle = null; // Handle du dossier choisi, conservé en mémoire de session
+
+async function exportData() {
+  collectCurrentMonth();
+
+  const exportObj = {
+    version: 4,
+    exportDate: new Date().toISOString(),
+    exportDateFr: new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }),
+    data,
+    objectives,
+    soldes,
+    horairesTypes,
+    profileData,
+  };
+
+  const json = JSON.stringify(exportObj, null, 2);
+  const filename = `faprotime-sauvegarde.json`;
+
+  // Tentative via File System Access API (Vivaldi/Chrome/Edge)
+  if (window.showDirectoryPicker) {
+    try {
+      // Si pas encore de dossier choisi, demander
+      if (!savedDirHandle) {
+        savedDirHandle = await window.showDirectoryPicker({
+          mode: 'readwrite',
+          startIn: 'documents'
+        });
+      }
+
+      // Vérifier qu'on a toujours les permissions
+      const perm = await savedDirHandle.queryPermission({ mode: 'readwrite' });
+      if (perm !== 'granted') {
+        await savedDirHandle.requestPermission({ mode: 'readwrite' });
+      }
+
+      // Écrire le fichier directement dans le dossier
+      const fileHandle = await savedDirHandle.getFileHandle(filename, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(json);
+      await writable.close();
+
+      // Mémoriser le nom du dossier pour l'afficher
+      const folderName = savedDirHandle.name;
+      showNotif(`✅ Sauvegardé dans "${folderName}"`);
+
+      // Mettre à jour l'indicateur de dossier dans le header
+      updateFolderIndicator(folderName, filename);
+      return;
+
+    } catch(err) {
+      if (err.name === 'AbortError') {
+        // L'utilisateur a annulé la sélection de dossier
+        showNotif('⚠️ Sélection annulée');
+        return;
+      }
+      // Autre erreur → fallback téléchargement classique
+      savedDirHandle = null;
+      console.warn('File System API échouée, fallback téléchargement', err);
+    }
+  }
+
+  // FALLBACK : téléchargement classique (Firefox, Safari, ou erreur)
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  showNotif(`⬇️ Téléchargé : ${filename}`);
+}
+
+function updateFolderIndicator(folderName, filename) {
+  const el = document.getElementById('folderIndicator');
+  if (el) {
+    el.textContent = `📁 ${folderName} / ${filename}`;
+    el.style.display = 'inline';
+  }
+}
+
+// Changer de dossier de sauvegarde
+async function changeSaveFolder() {
+  if (!window.showDirectoryPicker) {
+    showNotif('⚠️ Non supporté par ce navigateur');
+    return;
+  }
+  try {
+    savedDirHandle = await window.showDirectoryPicker({ mode: 'readwrite', startIn: 'documents' });
+    updateFolderIndicator(savedDirHandle.name, '—');
+    showNotif(`📁 Dossier choisi : "${savedDirHandle.name}"`);
+  } catch(e) {
+    if (e.name !== 'AbortError') showNotif('❌ Erreur sélection dossier');
+  }
+}
+
+// Ouvre la boîte de sélection de fichier
+function triggerImport() {
+  document.getElementById('importFileInput').value = ''; // reset
+  document.getElementById('importFileInput').click();
+}
+
+let pendingImportData = null; // données en attente de confirmation
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const parsed = JSON.parse(e.target.result);
+
+      // Accepter v4 (nouveau format mono-user) et v3 (ancien multi-user) et v2
+      const isV4 = parsed.version === 4 && parsed.data;
+      const isV3 = parsed.version === 3 && parsed.users && parsed.allData;
+      const isV2 = parsed.data && typeof parsed.data === 'object';
+
+      if (!isV4 && !isV3 && !isV2) {
+        showNotif('❌ Fichier invalide ou corrompu');
+        return;
+      }
+
+      pendingImportData = { ...parsed, _format: isV4 ? 'v4' : isV3 ? 'v3' : 'v2' };
+
+      const exportDateFr = parsed.exportDateFr || parsed.exportDate || 'inconnue';
+      document.getElementById('importFileName').textContent = file.name;
+      document.getElementById('importModalBody').innerHTML = `
+        Vous êtes sur le point de charger :<br>
+        <strong>${file.name}</strong><br>
+        Exporté le : <strong>${exportDateFr}</strong><br><br>
+        Cela va <strong>remplacer toutes les données actuelles</strong>.<br>
+        Cette action est irréversible.<br><br>
+        Voulez-vous continuer ?
+      `;
+      document.getElementById('importModal').classList.add('show');
+
+    } catch(err) {
+      showNotif('❌ Erreur de lecture du fichier JSON');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('show');
+  pendingImportData = null;
+}
+
+function confirmImport() {
+  if (!pendingImportData) return;
+  const fmt = pendingImportData._format;
+
+  if (fmt === 'v4') {
+    // Nouveau format mono-user
+    data          = pendingImportData.data          || {};
+    objectives    = pendingImportData.objectives    || {};
+    soldes        = pendingImportData.soldes        || {};
+    horairesTypes = pendingImportData.horairesTypes || null;
+    profileData   = pendingImportData.profileData   || {};
+  } else if (fmt === 'v3') {
+    // Ancien format multi-user → on prend le currentUser
+    const uid = pendingImportData.currentUserId;
+    data          = (pendingImportData.allData && pendingImportData.allData[uid]) || {};
+    objectives    = (pendingImportData.allObjectives && pendingImportData.allObjectives[uid]) || {};
+    soldes        = (pendingImportData.allSoldes && pendingImportData.allSoldes[uid]) || {};
+    horairesTypes = (pendingImportData.allHorairesTypes && pendingImportData.allHorairesTypes[uid]) || null;
+    profileData   = {};
+  } else {
+    // Très ancien format v2
+    data = pendingImportData.data || {};
+    objectives = {}; soldes = {}; horairesTypes = null; profileData = {};
+  }
+
+  persistData();
+  closeImportModal();
+  buildMonthTabs();
+  renderMonth();
+  if (document.getElementById('sectionAnnual').classList.contains('visible')) renderAnnual();
+  showNotif('✅ Données chargées avec succès !');
+  pendingImportData = null;
+}
+
+// ===================== IMPRESSION =====================
+
+let selectedPrintMonths = new Set();
+
+function openPrintModal() {
+  // Mettre à jour les labels avec l'année/mois courant
+  document.getElementById('printOption1Label').textContent = `Mois en cours — ${MONTHS[currentMonth]} ${currentYear}`;
+  document.getElementById('printOption3Label').textContent = `Année complète ${currentYear} en tableau`;
+
+  // Construire le sélecteur de mois
+  const container = document.getElementById('monthPickerBtns');
+  container.innerHTML = '';
+  selectedPrintMonths.clear();
+  MONTHS.forEach((m, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'month-pick-btn';
+    btn.textContent = m.substring(0,3);
+    btn.dataset.month = i;
+    btn.onclick = () => {
+      if (selectedPrintMonths.has(i)) {
+        selectedPrintMonths.delete(i);
+        btn.classList.remove('selected');
+      } else {
+        selectedPrintMonths.add(i);
+        btn.classList.add('selected');
+      }
+    };
+    container.appendChild(btn);
+  });
+  document.getElementById('monthPicker').style.display = 'none';
+  document.getElementById('printModal').classList.add('show');
+}
+
+function closePrintModal() {
+  document.getElementById('printModal').classList.remove('show');
+}
+
+function toggleMonthPicker() {
+  const mp = document.getElementById('monthPicker');
+  mp.style.display = mp.style.display === 'none' ? 'block' : 'none';
+}
+
+// ---- Générer le HTML d'un mois pour impression ----
+function buildMonthPrintHTML(year, monthIdx) {
+  const days = getWorkDays(year, monthIdx);
+  let totalMin = 0, workedDays = 0, extraMin = 0, absDays = 0;
+
+  // Calculer les totaux depuis data
+  days.forEach(d => {
+    const dkey = dateKey(d);
+    const saved = (data[year] && data[year][monthIdx] && data[year][monthIdx][dkey]) || {};
+    const mins = calcFromSaved(saved);
+    if (mins > 0) { totalMin += mins; workedDays++; const ex = mins - NORMAL_HOURS_DAY*60; if (ex > 0) extraMin += ex; }
+    if (saved.absence && saved.absence !== '—') absDays++;
+  });
+
+  let rows = '';
+  days.forEach(d => {
+    const dkey = dateKey(d);
+    const saved = (data[year] && data[year][monthIdx] && data[year][monthIdx][dkey]) || {};
+    const mins = calcFromSaved(saved);
+    const dow = d.getDay();
+    const dayName = DAYS_MAP[dow] || '';
+    const absCode = saved.absence || '—';
+    const absLabel = absCode !== '—' ? absCode : '';
+    const rowBg = absCode !== '—' ? 'background:#f5f5f5;' : '';
+
+    const lbMin = parseInt(saved.lunchBreak || '0');
+    const lbStr = lbMin > 0 ? `− ${Math.floor(lbMin/60)}h${String(lbMin%60).padStart(2,'0')}` : '';
+    rows += `<tr style="${rowBg}">
+      <td><strong>${dayName}</strong><br><span style="font-size:9px;color:#666;">${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</span></td>
+      <td style="font-family:monospace;">${saved.start||''}</td>
+      <td style="font-family:monospace;">${lbStr}</td>
+      <td style="font-family:monospace;">${saved.end||''}</td>
+      <td style="font-family:monospace;">${saved.extraStart||''}</td>
+      <td style="font-family:monospace;">${saved.extraEnd||''}</td>
+      <td style="font-family:monospace;font-weight:700;color:${mins>NORMAL_HOURS_DAY*60?'#c05000':'#147a50'};">${minToStr(mins)}</td>
+      <td>${absLabel ? `<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;border:1px solid #ccc;background:#f0f0f0;">${absLabel}</span>` : ''}</td>
+      <td style="font-size:10px;color:#555;">${saved.comment||''}</td>
+    </tr>`;
+  });
+
+  return `
+    <div class="print-month-block">
+      <div class="print-month-title">${MONTHS[monthIdx]} ${year}</div>
+      <div class="print-summary-row">
+        <div class="print-summary-chip"><div class="val">${workedDays}</div><div class="lbl">Jours travaillés</div></div>
+        <div class="print-summary-chip"><div class="val">${minToStr(totalMin)}</div><div class="lbl">Total heures</div></div>
+        <div class="print-summary-chip"><div class="val">${minToStr(extraMin)}</div><div class="lbl">Heures suppl.</div></div>
+        <div class="print-summary-chip"><div class="val">${absDays}</div><div class="lbl">Jours absence</div></div>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Jour</th><th>Début</th><th>Repas</th><th>Fin</th>
+          <th>Début +</th><th>Fin +</th><th>Total</th><th>Absence</th><th>Commentaire</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr class="print-total-row">
+          <td colspan="6"><span class="total-label">Total du mois</span></td>
+          <td colspan="4">
+            <span class="total-value">${minToStr(totalMin)}</span>
+            ${extraMin > 0 ? `<span style="font-size:10px;color:#777;margin-left:12px;">dont ${minToStr(extraMin)} suppl.</span>` : ''}
+            ${absDays > 0 ? `<span style="font-size:10px;color:#b08000;margin-left:10px;">${absDays} jour(s) d'absence</span>` : ''}
+          </td>
+        </tr></tfoot>
+      </table>
+    </div>`;
+}
+
+// ---- Option 1 : Mois en cours ----
+function printCurrentMonth() {
+  collectCurrentMonth();
+  closePrintModal();
+  const html = buildMonthPrintHTML(currentYear, currentMonth);
+  openPrintWindow(html, `${MONTHS[currentMonth]} ${currentYear}`);
+}
+
+// ---- Option 2 : Plusieurs mois ----
+function printSelectedMonths() {
+  if (selectedPrintMonths.size === 0) { showNotif('⚠️ Aucun mois sélectionné'); return; }
+  collectCurrentMonth();
+  closePrintModal();
+
+  const sorted = Array.from(selectedPrintMonths).sort((a,b) => a-b);
+  let html = '';
+  sorted.forEach(mi => { html += buildMonthPrintHTML(currentYear, mi); });
+  const title = `Planning ${currentYear} — ${sorted.map(i => MONTHS[i].substring(0,3)).join(', ')}`;
+  openPrintWindow(html, title);
+}
+
+// ---- Option 3 : Année complète ----
+function printFullYear() {
+  collectCurrentMonth();
+  closePrintModal();
+
+  // Récap annuel
+  let yearTotal = 0, yearDays = 0, yearExtra = 0, yearAbs = 0;
+  let monthCards = '';
+
+  MONTHS.forEach((m, mi) => {
+    const days = getWorkDays(currentYear, mi);
+    let total = 0, worked = 0, extra = 0, abs = 0;
+    days.forEach(d => {
+      const dkey = dateKey(d);
+      const saved = (data[currentYear] && data[currentYear][mi] && data[currentYear][mi][dkey]) || {};
+      const mins = calcFromSaved(saved);
+      if (mins > 0) { total += mins; worked++; const ex = mins - NORMAL_HOURS_DAY*60; if (ex > 0) extra += ex; }
+      if (saved.absence && saved.absence !== '—') abs++;
+    });
+    yearTotal += total; yearDays += worked; yearExtra += extra; yearAbs += abs;
+
+    monthCards += `<div class="print-annual-card">
+      <div class="name">${m}</div>
+      <div class="hours">${minToStr(total)}</div>
+      <div class="detail">${worked} jour${worked>1?'s':''} travaillé${worked>1?'s':''}${extra>0?' · +'+minToStr(extra)+' suppl.':''}</div>
+    </div>`;
+  });
+
+  const recapHTML = `
+    <div class="print-annual-recap">
+      <h2>Récapitulatif annuel ${currentYear}</h2>
+      <div class="print-grand-total">
+        <div class="item"><div class="val">${minToStr(yearTotal)}</div><div class="lbl">Total annuel</div></div>
+        <div class="item"><div class="val">${yearDays}</div><div class="lbl">Jours travaillés</div></div>
+        <div class="item"><div class="val">${minToStr(yearExtra)}</div><div class="lbl">Heures suppl.</div></div>
+        <div class="item"><div class="val">${yearAbs}</div><div class="lbl">Jours d'absence</div></div>
+      </div>
+      <div class="print-annual-grid" style="margin-top:16px;">${monthCards}</div>
+    </div>`;
+
+  let monthsHTML = '';
+  MONTHS.forEach((_, mi) => { monthsHTML += buildMonthPrintHTML(currentYear, mi); });
+
+  openPrintWindow(recapHTML + monthsHTML, `Planning annuel ${currentYear}`);
+}
+
+// ---- Ouvrir une fenêtre d'impression ----
+function openPrintWindow(bodyHTML, title) {
+  const win = window.open('', '_blank', 'width=900,height=700');
+  win.document.write(`<!DOCTYPE html><html lang="fr"><head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Arial, sans-serif; font-size: 11px; color: #111; padding: 16px; }
+      .print-month-block { page-break-after: always; padding-bottom: 20px; }
+      .print-month-block:last-child { page-break-after: avoid; }
+      .print-month-title { font-size: 18px; font-weight: bold; color: #1a1a2e; border-bottom: 2px solid #4f8ef7; padding-bottom: 6px; margin-bottom: 10px; }
+      .print-summary-row { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+      .print-summary-chip { border: 1px solid #ccc; border-radius: 5px; padding: 5px 12px; background: #f5f7ff; }
+      .print-summary-chip .val { font-weight: 700; color: #1a56db; font-size: 13px; }
+      .print-summary-chip .lbl { color: #666; font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
+      table { border-collapse: collapse; width: 100%; font-size: 10px; margin-bottom: 8px; }
+      thead th { background: #e8ecf5; color: #333; border: 1px solid #bcc5d9; padding: 6px 7px; font-size: 9px; text-transform: uppercase; letter-spacing: .06em; text-align: left; }
+      tbody td { border: 1px solid #dde3f0; padding: 5px 7px; color: #111; vertical-align: middle; }
+      tbody tr:nth-child(even) td { background: #f8f9fd; }
+      .print-total-row td { background: #e8ecf5; font-weight: 700; border: 1px solid #bcc5d9; padding: 7px; }
+      .total-label { color: #1a56db; font-size: 13px; }
+      .total-value { color: #1a56db; font-size: 15px; font-weight: 700; margin-left: 8px; }
+      .print-annual-recap { page-break-after: always; padding-bottom: 20px; }
+      .print-annual-recap h2 { font-size: 20px; color: #1a1a2e; border-bottom: 2px solid #4f8ef7; padding-bottom: 6px; margin-bottom: 14px; }
+      .print-annual-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 16px; }
+      .print-annual-card { border: 1px solid #ccc; border-radius: 5px; padding: 10px; background: #f8f9fd; }
+      .print-annual-card .name { font-weight: 700; font-size: 12px; color: #1a1a2e; margin-bottom: 3px; }
+      .print-annual-card .hours { font-size: 18px; font-weight: 700; color: #1a56db; }
+      .print-annual-card .detail { font-size: 9px; color: #666; margin-top: 2px; }
+      .print-grand-total { background: #e8ecf5; border-radius: 5px; padding: 12px 16px; display: flex; gap: 28px; flex-wrap: wrap; margin-top: 12px; }
+      .print-grand-total .item .val { font-size: 22px; font-weight: 700; color: #1a56db; }
+      .print-grand-total .item .lbl { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: .08em; }
+      @media print { body { padding: 8px; } }
+    </style>
+  </head><body>${bodyHTML}
+  <script>window.onload = function(){ window.print(); }<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+// ===================== NUMÉRO DE SEMAINE =====================
+function getWeekNumber(d) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+}
+
+// ===================== OBJECTIF MENSUEL =====================function renderObjectiveBar(totalMin) {
+  const objH = getMonthObjective();
+  const bar = document.getElementById('objectiveBar');
+  if (!bar) return;
+  if (objH <= 0) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+
+  const objMin = Math.round(objH * 60);
+  const pct = Math.min(100, Math.round((totalMin / objMin) * 100));
+  const diff = totalMin - objMin;
+  const diffStr = (diff >= 0 ? '+' : '') + minToStr(Math.abs(diff));
+  const diffColor = diff >= 0 ? 'var(--green)' : 'var(--orange)';
+  const barColor = diff >= 0 ? 'var(--green)' : (pct > 80 ? 'var(--orange)' : 'var(--accent)');
+
+  document.getElementById('objBarFill').style.width = pct + '%';
+  document.getElementById('objBarFill').style.background = barColor;
+  document.getElementById('objBarPct').textContent = pct + '%';
+  document.getElementById('objBarDiff').textContent = diff === 0 ? '✓ Objectif atteint !' : diffStr;
+  document.getElementById('objBarDiff').style.color = diffColor;
+  document.getElementById('objBarTarget').textContent = `Objectif : ${minToStr(objMin)}`;
+}
+
+function openObjectiveModal() {
+  const cur = getMonthObjective();
+  document.getElementById('objInput').value = cur > 0 ? cur : '';
+  document.getElementById('objModalMonthLabel').textContent = `${MONTHS[currentMonth]} ${currentYear}`;
+  document.getElementById('objectiveModal').classList.add('show');
+}
+function closeObjectiveModal() { document.getElementById('objectiveModal').classList.remove('show'); }
+// saveObjective est défini plus haut dans la section DATA LAYER
+
+// ===================== SOLDE CONGÉS =====================
+
+function calcSoldesUsed() {
+  // Compter les absences CA, CT, RTT sur toute l'année en cours
+  const used = { CA: 0, CT: 0, RTT: 0 };
+  for (let mi = 0; mi < 12; mi++) {
+    const mdata = (data[currentYear] && data[currentYear][mi]) || {};
+    Object.values(mdata).forEach(row => {
+      if (row.absence && used[row.absence] !== undefined) used[row.absence]++;
+    });
+  }
+  return used;
+}
+
+function renderSoldes() {
+  const soldes = getSoldes();
+  const used = calcSoldesUsed();
+  const bar = document.getElementById('soldesBar');
+  if (!bar) return;
+
+  ['CA','CT','RTT'].forEach(code => {
+    const init = parseFloat(soldes[code] || 0);
+    const u = used[code] || 0;
+    const left = Math.max(0, init - u);
+    const el = document.getElementById(`solde_${code}`);
+    if (el) {
+      el.querySelector('.solde-init').textContent = init > 0 ? `${init}j` : '—';
+      el.querySelector('.solde-used').textContent = `-${u}j`;
+      el.querySelector('.solde-left').textContent = `${left}j`;
+      el.querySelector('.solde-left').style.color = left <= 2 ? 'var(--red)' : left <= 5 ? 'var(--orange)' : 'var(--green)';
+    }
+  });
+}
+
+function openSoldesModal() {
+  const s = getSoldes();
+  document.getElementById('soldeCA').value = s.CA || '';
+  document.getElementById('soldeCT').value = s.CT || '';
+  document.getElementById('soldeRTT').value = s.RTT || '';
+  document.getElementById('soldesYear').textContent = currentYear;
+  document.getElementById('soldesModal').classList.add('show');
+}
+function closeSoldesModal() { document.getElementById('soldesModal').classList.remove('show'); }
+function saveSoldesModal() {
+  const s = {
+    CA: parseFloat(document.getElementById('soldeCA').value) || 0,
+    CT: parseFloat(document.getElementById('soldeCT').value) || 0,
+    RTT: parseFloat(document.getElementById('soldeRTT').value) || 0,
+  };
+  saveSoldes(s);
+  closeSoldesModal();
+  renderSoldes();
+  showNotif('✅ Soldes enregistrés');
+}
+
+// ===================== HORAIRES TYPES =====================
+function getHorairesTypes() { return getHT(); }
+function saveHorairesTypes(h) { setHT(h); persistData(); }
+
+function openHorairesModal() {
+  const h = getHorairesTypes() || { start:'08:00', end:'17:00', lunchBreak:'60', extraStart:'', extraEnd:'' };
+  document.getElementById('htStart').value = h.start || '';
+  document.getElementById('htEnd').value = h.end || '';
+  document.getElementById('htLunch').value = h.lunchBreak || '60';
+  document.getElementById('htExtraStart').value = h.extraStart || '';
+  document.getElementById('htExtraEnd').value = h.extraEnd || '';
+  document.getElementById('horairesModal').classList.add('show');
+}
+function closeHorairesModal() { document.getElementById('horairesModal').classList.remove('show'); }
+function saveHorairesModal() {
+  const h = {
+    start: document.getElementById('htStart').value,
+    end: document.getElementById('htEnd').value,
+    lunchBreak: document.getElementById('htLunch').value,
+    extraStart: document.getElementById('htExtraStart').value,
+    extraEnd: document.getElementById('htExtraEnd').value,
+  };
+  saveHorairesTypes(h);
+  closeHorairesModal();
+  showNotif('✅ Horaires types enregistrés');
+}
+
+function applyHorairesWeek() {
+  const h = getHorairesTypes();
+  if (!h) { showNotif('⚠️ Aucun horaire type défini'); openHorairesModal(); return; }
+
+  // Trouver la semaine courante dans le mois affiché
+  const days = getWorkDays(currentYear, currentMonth);
+  const today = new Date();
+
+  // Déterminer la semaine à remplir (celle contenant aujourd'hui si même mois/année, sinon la 1ère)
+  let targetWeek = null;
+  days.forEach(d => {
+    const wk = getWeekNumber(d);
+    if (currentYear === today.getFullYear() && currentMonth === today.getMonth()) {
+      if (getWeekNumber(today) === wk) targetWeek = wk;
+    }
+  });
+  if (!targetWeek) targetWeek = getWeekNumber(days[0]);
+
+  let filled = 0;
+  days.forEach(d => {
+    if (getWeekNumber(d) !== targetWeek) return;
+    const dkey = dateKey(d);
+    const saved = getRowData(dkey);
+    if (saved.absence && saved.absence !== '—') return; // ne pas écraser les absences
+
+    if (!data[currentYear]) data[currentYear] = {};
+    if (!data[currentYear][currentMonth]) data[currentYear][currentMonth] = {};
+    data[currentYear][currentMonth][dkey] = {
+      ...saved,
+      start: h.start,
+      end: h.end,
+      lunchBreak: h.lunchBreak,
+      extraStart: h.extraStart || '',
+      extraEnd: h.extraEnd || '',
+    };
+    filled++;
+  });
+
+  persistData();
+  renderMonth();
+  showNotif(`✅ ${filled} jour(s) remplis avec vos horaires types`);
+}
+
+// ===================== GRAPHIQUE JOURNALIER =====================
+function renderChart(days) {
+  const canvas = document.getElementById('hoursChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 800;
+  const H = 80;
+  canvas.width = W;
+  canvas.height = H;
+  ctx.clearRect(0, 0, W, H);
+
+  const mins = days.map(d => {
+    const dkey = dateKey(d);
+    return calcFromSaved(getRowData(dkey));
+  });
+
+  const maxVal = Math.max(...mins, NORMAL_HOURS_DAY * 60);
+  const n = mins.length;
+  if (n === 0) return;
+
+  const barW = Math.floor((W - 20) / n) - 3;
+  const normalH = Math.round((NORMAL_HOURS_DAY * 60 / maxVal) * (H - 16));
+
+  // Ligne de référence heures normales
+  ctx.strokeStyle = 'rgba(79,142,247,0.2)';
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(8, H - 12 - normalH);
+  ctx.lineTo(W - 8, H - 12 - normalH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  mins.forEach((m, i) => {
+    const x = 10 + i * (barW + 3);
+    const barH = m > 0 ? Math.max(3, Math.round((m / maxVal) * (H - 16))) : 0;
+    const y = H - 12 - barH;
+
+    const color = m === 0 ? 'rgba(122,130,160,0.2)'
+                : m > NORMAL_HOURS_DAY * 60 ? '#fb923c'
+                : '#34d399';
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, barH, 3);
+    ctx.fill();
+
+    // Label heures
+    if (m > 0) {
+      ctx.fillStyle = '#7a82a0';
+      ctx.font = '8px DM Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(minToStr(m), x + barW/2, y - 2);
+    }
+  });
+}
+
+// ===================== ALERTE JOURS NON SAISIS =====================
+function checkMissingDays() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const days = getWorkDays(currentYear, currentMonth);
+
+  days.forEach(d => {
+    const dkey = dateKey(d);
+    const isPast = d < today;
+    const row = document.querySelector(`tr[data-dkey="${dkey}"]`);
+    if (!row) return;
+
+    const saved = getRowData(dkey);
+    const hasHours = saved.start && saved.end;
+    const hasAbsence = saved.absence && saved.absence !== '—';
+    const isMissing = isPast && !hasHours && !hasAbsence;
+
+    // Ne pas écraser les classes d'absence existantes
+    const hasAbsClass = [...row.classList].some(c => c.startsWith('row-') && c !== 'row-missing');
+    if (isMissing && !hasAbsClass) {
+      row.classList.add('row-missing');
+      // Ajouter icône si pas déjà là
+      const dayLabel = row.querySelector('.day-label');
+      if (dayLabel && !dayLabel.querySelector('.missing-icon')) {
+        const icon = document.createElement('span');
+        icon.className = 'missing-icon';
+        icon.title = 'Journée passée sans horaires ni absence';
+        icon.textContent = ' ⚠️';
+        dayLabel.appendChild(icon);
+      }
+    } else {
+      row.classList.remove('row-missing');
+      const icon = row.querySelector('.missing-icon');
+      if (icon) icon.remove();
+    }
+  });
+}
+
+// ===================== RÉCAP ABSENCES ANNUEL =====================
+function renderAbsRecap() {
+  const grid = document.getElementById('absRecapGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  // Compter toutes les absences de l'année
+  const counts = {};
+  for (let mi = 0; mi < 12; mi++) {
+    const days = getWorkDays(currentYear, mi);
+    days.forEach(d => {
+      const dkey = dateKey(d);
+      const saved = (data[currentYear] && data[currentYear][mi] && data[currentYear][mi][dkey]) || {};
+      if (saved.absence && saved.absence !== '—') {
+        counts[saved.absence] = (counts[saved.absence] || 0) + 1;
+      }
+    });
+  }
+
+  if (Object.keys(counts).length === 0) {
+    grid.innerHTML = '<span style="color:var(--muted);font-size:13px;">Aucune absence enregistrée pour cette année.</span>';
+    return;
+  }
+
+  // Afficher dans l'ordre de la liste ABSENCES
+  ABSENCES.forEach(abs => {
+    if (abs.code === '—') return;
+    const count = counts[abs.code];
+    if (!count) return;
+
+    const chip = document.createElement('div');
+    chip.className = 'abs-recap-chip';
+    chip.innerHTML = `
+      <span class="abs-badge ${abs.cls} visible" style="font-size:10px;padding:2px 7px;">${abs.code}</span>
+      <span class="arc-count" style="color:var(--text);">${count}</span>
+      <span class="arc-lbl">${count > 1 ? 'jours' : 'jour'}</span>
+    `;
+    chip.title = abs.full;
+    grid.appendChild(chip);
+  });
+
+  // Total
+  const total = Object.values(counts).reduce((a,b) => a+b, 0);
+  const totalChip = document.createElement('div');
+  totalChip.className = 'abs-recap-chip';
+  totalChip.style.borderColor = 'var(--accent)';
+  totalChip.innerHTML = `
+    <span style="font-size:10px;font-weight:700;color:var(--accent);">TOTAL</span>
+    <span class="arc-count" style="color:var(--accent);">${total}</span>
+    <span class="arc-lbl">jours</span>
+  `;
+  grid.appendChild(totalChip);
+}
+
+// ===================== PROFIL UTILISATEUR =====================
+function openProfileModal() {
+  document.getElementById('profileNom').value     = profileData.nom     || '';
+  document.getElementById('profilePoste').value   = profileData.poste   || '';
+  document.getElementById('profileSociete').value = profileData.societe || '';
+  document.getElementById('profileModal').classList.add('show');
+}
+function closeProfileModal() { document.getElementById('profileModal').classList.remove('show'); }
+function saveProfileModal() {
+  profileData = {
+    nom:     document.getElementById('profileNom').value.trim(),
+    poste:   document.getElementById('profilePoste').value.trim(),
+    societe: document.getElementById('profileSociete').value.trim(),
+  };
+  persistData();
+  updatePrintHeader();
+  closeProfileModal();
+  showNotif('✅ Profil enregistré');
+}
+
+function updatePrintHeader() {
+  document.getElementById('peNom').textContent     = profileData.nom     || '';
+  document.getElementById('pePoste').textContent   = profileData.poste   || '';
+  document.getElementById('peSociete').textContent = profileData.societe || '';
+  document.getElementById('pePeriode').textContent = `${MONTHS[currentMonth]} ${currentYear}`;
+  document.getElementById('peUser').textContent    = currentFbUser ? currentFbUser.email : '';
+}
+
+// ===================== HORLOGE TEMPS RÉEL =====================
+function startClock() {
+  function tick() {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('fr-FR', {
+      weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+    });
+    const timeStr = now.toLocaleTimeString('fr-FR', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+    const dateEl = document.getElementById('clockDate');
+    const timeEl = document.getElementById('clockTime');
+    if (dateEl) dateEl.textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+    if (timeEl) timeEl.textContent = timeStr;
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ===================== BOUTON AUJOURD'HUI =====================
+function goToToday() {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = today.getMonth();
+  collectCurrentMonth();
+  currentYear  = y;
+  currentMonth = m;
+  buildYearSelect();
+  buildMonthTabs();
+  renderMonth();
+  showNotif(`📍 ${MONTHS[m]} ${y}`);
+}
+
+// ===================== START =====================
+// L'application démarre via fbAuth.onAuthStateChanged() ci-dessus,
+// qui appelle init() une fois l'utilisateur connecté et les données chargées.
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .catch(err => console.warn('SW:', err));
+  });
+}
+</script>
+</body>
+</html>
