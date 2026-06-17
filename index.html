@@ -2522,7 +2522,8 @@ function getWeekNumber(d) {
   return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
 }
 
-// ===================== OBJECTIF MENSUEL =====================function renderObjectiveBar(totalMin) {
+// ===================== OBJECTIF MENSUEL =====================
+function renderObjectiveBar(totalMin) {
   const objH = getMonthObjective();
   const bar = document.getElementById('objectiveBar');
   if (!bar) return;
