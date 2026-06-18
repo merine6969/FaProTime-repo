@@ -1508,16 +1508,16 @@
     </div>
   </div>
 </div>
+
+<div class="modal-overlay" id="importModal">
+  <div class="modal" style="max-width:440px;">
     <div class="modal-title">⚠️ Charger une sauvegarde</div>
     <div class="modal-body" id="importModalBody">
-      Vous êtes sur le point de charger le fichier :<br>
-      <strong id="importFileName">—</strong><br><br>
-      Cela va <strong>remplacer toutes les données actuelles</strong> par celles du fichier. Cette action est irréversible.<br><br>
-      Voulez-vous continuer ?
+      <span id="importFileName"></span>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeImportModal()">Annuler</button>
-      <button class="btn btn-cyan" onclick="confirmImport()">✅ Charger quand même</button>
+      <button class="btn btn-primary" onclick="confirmImport()">✅ Charger quand même</button>
     </div>
   </div>
 </div>
@@ -2461,7 +2461,6 @@ function importData(event) {
       pendingImportData = { ...parsed, _format: isV4 ? 'v4' : isV3 ? 'v3' : 'v2' };
 
       const exportDateFr = parsed.exportDateFr || parsed.exportDate || 'inconnue';
-      document.getElementById('importFileName').textContent = file.name;
       document.getElementById('importModalBody').innerHTML = `
         Vous êtes sur le point de charger :<br>
         <strong>${file.name}</strong><br>
@@ -2865,8 +2864,6 @@ function saveSoldesModal() {
 }
 
 // ===================== HORAIRES TYPES =====================
-function getHorairesTypes() { return getHT(); }
-function saveHorairesTypes(h) { setHT(h); persistData(); }
 
 function openHorairesModal() {
   const h = getHorairesTypes() || { start:'08:00', end:'17:00', lunchBreak:'60', extraStart:'', extraEnd:'' };
