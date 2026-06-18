@@ -19,8 +19,20 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<!-- Appliquer le thème immédiatement pour éviter le flash -->
+<script>
+  (function() {
+    const t = localStorage.getItem('faprotime_theme') || 'dark';
+    if (t === 'light') document.documentElement.classList.add('theme-light-early');
+    else if (t === 'auto') {
+      if (!window.matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.classList.add('theme-light-early');
+    }
+  })();
+</script>
 
 <style>
+  /* ---- THÈME SOMBRE (défaut) ---- */
   :root {
     --bg: #0f1117;
     --surface: #181c27;
@@ -35,6 +47,105 @@
     --muted: #7a82a0;
     --input-bg: #252b42;
     --hover: #2a3050;
+  }
+
+  /* Thème clair anticipé (évite le flash au chargement) */
+  html.theme-light-early body,
+  body.theme-light {
+    --bg: #f0f2f8;
+    --surface: #ffffff;
+    --card: #ffffff;
+    --border: #d0d7e8;
+    --accent: #2563eb;
+    --accent2: #7c3aed;
+    --green: #059669;
+    --orange: #d97706;
+    --red: #dc2626;
+    --text: #1a1f36;
+    --muted: #64748b;
+    --input-bg: #f1f5f9;
+    --hover: #e2e8f5;
+  }
+
+  /* ---- BOUTON PARAMÈTRES ---- */
+  .btn-settings {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    transition: all .15s;
+    flex-shrink: 0;
+  }
+  .btn-settings:hover { border-color: var(--accent); color: var(--accent); transform: rotate(45deg); }
+
+  /* ---- MODALE PARAMÈTRES ---- */
+  .settings-section {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 14px;
+    background: var(--input-bg);
+  }
+  .settings-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .theme-btn-group { display: flex; gap: 8px; }
+  .theme-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .theme-btn:hover { border-color: var(--accent); }
+  .theme-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .theme-btn .theme-icon { font-size: 20px; }
+
+  /* Bouton danger reset */
+  .btn-reset {
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    border: 1px solid var(--red);
+    background: transparent;
+    color: var(--red);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    margin-top: 4px;
+  }
+  .btn-reset:hover { background: var(--red); color: #fff; }
+  .btn-reset-confirm {
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    border: none;
+    background: var(--red);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    display: none;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -985,6 +1096,7 @@
     <button class="btn btn-ghost" onclick="openPrintModal()">🖨️ Imprimer</button>
     <button class="btn btn-green" onclick="saveAll()">💾 Sauvegarder</button>
     <button class="btn btn-danger" onclick="handleLogout()" title="Se déconnecter" style="font-size:11px;padding:5px 10px;">🚪 Déconnexion</button>
+    <button class="btn-settings" onclick="openSettingsModal()" title="Paramètres">⚙️</button>
   </div>
   <!-- Input fichier caché pour l'import -->
   <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importData(event)">
@@ -1300,8 +1412,60 @@
     </div>
   </div>
 </div>
-<div class="modal-overlay" id="importModal">
-  <div class="modal">
+<!-- MODAL PARAMÈTRES -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-title">⚙️ Paramètres</div>
+
+    <!-- THÈME -->
+    <div class="settings-section">
+      <div class="settings-section-title">🎨 Apparence</div>
+      <div class="theme-btn-group">
+        <button class="theme-btn" id="themeBtnDark" onclick="setTheme('dark')">
+          <span class="theme-icon">🌙</span>
+          <span>Sombre</span>
+        </button>
+        <button class="theme-btn" id="themeBtnLight" onclick="setTheme('light')">
+          <span class="theme-icon">☀️</span>
+          <span>Clair</span>
+        </button>
+        <button class="theme-btn" id="themeBtnAuto" onclick="setTheme('auto')">
+          <span class="theme-icon">🖥️</span>
+          <span>Système</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- COMPTE -->
+    <div class="settings-section">
+      <div class="settings-section-title">👤 Compte</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">
+        Connecté en tant que : <strong id="settingsEmail" style="color:var(--text);"></strong>
+      </div>
+      <button class="btn btn-ghost" style="width:100%;font-size:13px;" onclick="closeSettingsModal();handleLogout();">🚪 Se déconnecter</button>
+    </div>
+
+    <!-- RÉINITIALISATION -->
+    <div class="settings-section">
+      <div class="settings-section-title">🗑️ Données</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">
+        Supprimer définitivement toutes vos données de planning (horaires, absences, objectifs, soldes). Le compte Firebase reste actif.
+      </div>
+      <button class="btn-reset" id="btnResetStep1" onclick="showResetConfirm()">🗑️ Réinitialiser toutes les données</button>
+      <div id="resetConfirmBox" style="display:none;margin-top:10px;padding:12px;background:rgba(248,113,113,.08);border:1px solid var(--red);border-radius:8px;">
+        <div style="font-size:12px;color:var(--red);font-weight:600;margin-bottom:8px;">⚠️ Cette action est irréversible. Toutes vos données seront perdues.</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="hideResetConfirm()">Annuler</button>
+          <button class="btn btn-danger" style="flex:1;font-size:12px;" onclick="confirmReset()">✅ Oui, tout supprimer</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeSettingsModal()">Fermer</button>
+    </div>
+  </div>
+</div>
     <div class="modal-title">⚠️ Charger une sauvegarde</div>
     <div class="modal-body" id="importModalBody">
       Vous êtes sur le point de charger le fichier :<br>
@@ -1675,6 +1839,7 @@ function saveObjective() {
 // ===================== INIT =====================
 function init() {
   loadData();
+  initTheme();
   buildYearSelect();
   currentYear  = new Date().getFullYear();
   currentMonth = new Date().getMonth();
@@ -2504,8 +2669,7 @@ function openPrintWindow(bodyHTML, title) {
       </div>
     </div>`;
 
-  const win = window.open('', '_blank', 'width=900,height=700');
-  win.document.write(`<!DOCTYPE html><html lang="fr"><head>
+  const htmlContent = `<!DOCTYPE html><html lang="fr"><head>
     <meta charset="UTF-8">
     <title>${title}</title>
     <style>
@@ -2553,8 +2717,13 @@ function openPrintWindow(bodyHTML, title) {
     </style>
   </head><body>${enteteHTML}${bodyHTML}
   <script>window.onload = function(){ window.print(); }<\/script>
-  </body></html>`);
-  win.document.close();
+  </body></html>`;
+
+  // Blob URL pour éviter "about:blank" dans le pied de page navigateur
+  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  const blobUrl = URL.createObjectURL(blob);
+  const win = window.open(blobUrl, '_blank');
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
 }
 
 // ===================== NUMÉRO DE SEMAINE =====================
@@ -2899,7 +3068,93 @@ function updatePrintHeader() {
   document.getElementById('peUser').textContent    = currentFbUser ? currentFbUser.email : '';
 }
 
-// ===================== HORLOGE TEMPS RÉEL =====================
+// ===================== PARAMÈTRES =====================
+function openSettingsModal() {
+  // Email
+  document.getElementById('settingsEmail').textContent = currentFbUser ? currentFbUser.email : '';
+  // Thème actif
+  const t = localStorage.getItem('faprotime_theme') || 'dark';
+  updateThemeBtns(t);
+  // Reset
+  hideResetConfirm();
+  document.getElementById('settingsModal').classList.add('show');
+}
+function closeSettingsModal() {
+  document.getElementById('settingsModal').classList.remove('show');
+}
+
+// ===================== THÈME =====================
+function setTheme(theme) {
+  localStorage.setItem('faprotime_theme', theme);
+  applyTheme(theme);
+  updateThemeBtns(theme);
+}
+
+function applyTheme(theme) {
+  const body = document.body;
+  if (theme === 'light') {
+    body.classList.add('theme-light');
+  } else if (theme === 'dark') {
+    body.classList.remove('theme-light');
+  } else {
+    // auto — suit la préférence système
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    body.classList.toggle('theme-light', !prefersDark);
+  }
+}
+
+function updateThemeBtns(theme) {
+  ['dark','light','auto'].forEach(t => {
+    const btn = document.getElementById(`themeBtn${t.charAt(0).toUpperCase()+t.slice(1)}`);
+    if (btn) btn.classList.toggle('active', t === theme);
+  });
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('faprotime_theme') || 'dark';
+  applyTheme(saved);
+  // Écouter les changements système si mode auto
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if ((localStorage.getItem('faprotime_theme') || 'dark') === 'auto') applyTheme('auto');
+  });
+}
+
+// ===================== RÉINITIALISATION =====================
+function showResetConfirm() {
+  document.getElementById('resetConfirmBox').style.display = 'block';
+  document.getElementById('btnResetStep1').style.display = 'none';
+}
+function hideResetConfirm() {
+  document.getElementById('resetConfirmBox').style.display = 'none';
+  document.getElementById('btnResetStep1').style.display = 'block';
+}
+
+async function confirmReset() {
+  // Réinitialiser toutes les données
+  data = {};
+  objectives = {};
+  soldes = {};
+  horairesTypes = null;
+  profileData = {};
+
+  // Sauvegarder localement et dans le cloud
+  persistDataLocal();
+  if (currentFbUser) {
+    try {
+      await fbDb.collection('plannings').doc(currentFbUser.uid).set({
+        data: {}, objectives: {}, soldes: {}, horairesTypes: null, profileData: {},
+        updatedAt: new Date().toISOString()
+      });
+    } catch(e) { console.warn('Erreur reset cloud', e); }
+  }
+
+  closeSettingsModal();
+  buildMonthTabs();
+  renderMonth();
+  showNotif('🗑️ Données réinitialisées');
+}
+
+
 function startClock() {
   function tick() {
     const now = new Date();
