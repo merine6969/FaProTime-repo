@@ -1228,93 +1228,6 @@
     </div>
   </div>
 
-  <!-- MODAL OBJECTIF -->
-  <div class="modal-overlay" id="objectiveModal">
-    <div class="modal" style="max-width:380px;">
-      <div class="modal-title">🎯 Objectif mensuel</div>
-      <div class="modal-body">Définissez votre nombre d'heures contractuelles pour <strong id="objModalMonthLabel"></strong>. Une barre de progression s'affichera en temps réel.</div>
-      <div style="margin:16px 0;">
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;">Objectif en heures (ex: 151.67 pour 151h40)</label>
-        <input type="number" id="objInput" step="0.01" min="0" placeholder="ex: 151.67"
-          style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:16px;padding:8px 12px;border-radius:6px;width:100%;outline:none;">
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="closeObjectiveModal()">Annuler</button>
-        <button class="btn btn-primary" onclick="saveObjective()">✅ Enregistrer</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL SOLDES CONGÉS -->
-  <div class="modal-overlay" id="soldesModal">
-    <div class="modal" style="max-width:400px;">
-      <div class="modal-title">🏖️ Soldes de congés <span style="font-size:14px;color:var(--muted);" id="soldesYear"></span></div>
-      <div class="modal-body">Saisissez vos soldes de départ au 1er janvier. Le planning décompte automatiquement chaque absence posée.</div>
-      <div style="display:flex;flex-direction:column;gap:12px;margin:16px 0;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <span class="legend-badge ab-CA" style="min-width:40px;justify-content:center;">CA</span>
-          <span style="font-size:13px;flex:1;">Congé annuel</span>
-          <input type="number" id="soldeCA" min="0" step="0.5" placeholder="jours" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:6px 10px;border-radius:6px;width:90px;outline:none;text-align:center;">
-          <span style="font-size:12px;color:var(--muted);">jours</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <span class="legend-badge ab-CT" style="min-width:40px;justify-content:center;">CT</span>
-          <span style="font-size:13px;flex:1;">Congé trimestriel</span>
-          <input type="number" id="soldeCT" min="0" step="0.5" placeholder="jours" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:6px 10px;border-radius:6px;width:90px;outline:none;text-align:center;">
-          <span style="font-size:12px;color:var(--muted);">jours</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <span class="legend-badge ab-RTT" style="min-width:40px;justify-content:center;">RTT</span>
-          <span style="font-size:13px;flex:1;">RTT</span>
-          <input type="number" id="soldeRTT" min="0" step="0.5" placeholder="jours" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:6px 10px;border-radius:6px;width:90px;outline:none;text-align:center;">
-          <span style="font-size:12px;color:var(--muted);">jours</span>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="closeSoldesModal()">Annuler</button>
-        <button class="btn btn-primary" onclick="saveSoldesModal()">✅ Enregistrer</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL HORAIRES TYPES -->
-  <div class="modal-overlay" id="horairesModal">
-    <div class="modal" style="max-width:420px;">
-      <div class="modal-title">⚙️ Mes horaires types</div>
-      <div class="modal-body">Définissez vos horaires habituels. Le bouton <strong>⚡ Remplir semaine</strong> les appliquera en un clic sur tous les jours ouvrés de la semaine courante.</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;">
-        <div>
-          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Heure début</label>
-          <input type="time" id="htStart" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
-        </div>
-        <div>
-          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Heure fin</label>
-          <input type="time" id="htEnd" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
-        </div>
-        <div>
-          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Pause repas</label>
-          <select id="htLunch" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:7px 10px;border-radius:6px;width:100%;outline:none;cursor:pointer;">
-            <option value="0">— Aucun</option>
-            <option value="30">− 0h30</option>
-            <option value="60" selected>− 1h00</option>
-            <option value="90">− 1h30</option>
-            <option value="120">− 2h00</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Heures suppl.</label>
-          <div style="display:flex;gap:6px;">
-            <input type="time" id="htExtraStart" placeholder="Début" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:7px 6px;border-radius:6px;width:50%;outline:none;">
-            <input type="time" id="htExtraEnd" placeholder="Fin" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:7px 6px;border-radius:6px;width:50%;outline:none;">
-          </div>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="closeHorairesModal()">Annuler</button>
-        <button class="btn btn-primary" onclick="saveHorairesModal()">✅ Enregistrer</button>
-      </div>
-    </div>
-  </div>
   <div id="sectionAnnual" class="section">
     <div style="font-family:'DM Serif Display',serif;font-size:28px;margin-bottom:4px;" id="annualTitle">Vue Annuelle</div>
     <p style="color:var(--muted);font-size:13px;margin-bottom:8px;">Cliquez sur un mois pour y accéder</p>
@@ -1345,35 +1258,126 @@
     </div>
   </div>
 
-  <!-- MODAL PROFIL UTILISATEUR -->
-  <div class="modal-overlay" id="profileModal">
-    <div class="modal" style="max-width:420px;">
-      <div class="modal-title">👤 Mon profil — En-tête impression</div>
-      <div class="modal-body">Ces informations apparaîtront automatiquement sur chaque document imprimé. L'année, le mois et l'utilisateur sont ajoutés automatiquement.</div>
-      <div style="display:flex;flex-direction:column;gap:10px;margin:16px 0;">
-        <div>
-          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Nom et Prénom</label>
-          <input type="text" id="profileNom" class="profile-modal-input" placeholder="Ex : Dupont Marie">
-        </div>
-        <div>
-          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Poste / Fonction</label>
-          <input type="text" id="profilePoste" class="profile-modal-input" placeholder="Ex : Technicien, Infirmière...">
-        </div>
-        <div>
-          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Société / Établissement</label>
-          <input type="text" id="profileSociete" class="profile-modal-input" placeholder="Ex : Entreprise XYZ">
-        </div>
+</main>
+
+<!-- TOUTES LES MODALES (hors main pour éviter tout conflit CSS) -->
+
+<!-- MODAL PROFIL UTILISATEUR -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title">👤 Mon profil — En-tête impression</div>
+    <div class="modal-body">Ces informations apparaîtront automatiquement sur chaque document imprimé.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin:16px 0;">
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Nom et Prénom</label>
+        <input type="text" id="profileNom" class="profile-modal-input" placeholder="Ex : Dupont Marie">
       </div>
-      <div style="background:var(--input-bg);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted);margin-bottom:16px;">
-        💡 <strong style="color:var(--text);">Automatique à l'impression :</strong> Année · Mois · Utilisateur actif
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Poste / Fonction</label>
+        <input type="text" id="profilePoste" class="profile-modal-input" placeholder="Ex : Technicien, Infirmière...">
       </div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="closeProfileModal()">Annuler</button>
-        <button class="btn btn-primary" onclick="saveProfileModal()">✅ Enregistrer</button>
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Société / Établissement</label>
+        <input type="text" id="profileSociete" class="profile-modal-input" placeholder="Ex : Entreprise XYZ">
       </div>
     </div>
+    <div style="background:var(--input-bg);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted);margin-bottom:16px;">
+      💡 <strong style="color:var(--text);">Automatique à l'impression :</strong> Année · Mois · Email
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeProfileModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveProfileModal()">✅ Enregistrer</button>
+    </div>
   </div>
-</main>
+</div>
+
+<!-- MODAL OBJECTIF -->
+<div class="modal-overlay" id="objectiveModal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-title">🎯 Objectif mensuel</div>
+    <div class="modal-body">Définissez votre nombre d'heures contractuelles pour <strong id="objModalMonthLabel"></strong>. Une barre de progression s'affichera en temps réel.</div>
+    <div style="margin:16px 0;">
+      <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;">Objectif en heures (ex: 151.67 pour 151h40)</label>
+      <input type="number" id="objInput" step="0.01" min="0" placeholder="ex: 151.67"
+        style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:16px;padding:8px 12px;border-radius:6px;width:100%;outline:none;">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeObjectiveModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveObjective()">✅ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SOLDES CONGÉS -->
+<div class="modal-overlay" id="soldesModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-title">🏖️ Soldes de congés <span style="font-size:14px;color:var(--muted);" id="soldesYear"></span></div>
+    <div class="modal-body">Saisissez vos soldes de départ au 1er janvier. Le planning décompte automatiquement chaque absence posée.</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin:16px 0;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span class="legend-badge ab-CA" style="min-width:40px;justify-content:center;">CA</span>
+        <span style="font-size:13px;flex:1;">Congé annuel</span>
+        <input type="number" id="soldeCA" min="0" step="0.5" placeholder="jours" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:6px 10px;border-radius:6px;width:90px;outline:none;text-align:center;">
+        <span style="font-size:12px;color:var(--muted);">jours</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span class="legend-badge ab-CT" style="min-width:40px;justify-content:center;">CT</span>
+        <span style="font-size:13px;flex:1;">Congé trimestriel</span>
+        <input type="number" id="soldeCT" min="0" step="0.5" placeholder="jours" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:6px 10px;border-radius:6px;width:90px;outline:none;text-align:center;">
+        <span style="font-size:12px;color:var(--muted);">jours</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span class="legend-badge ab-RTT" style="min-width:40px;justify-content:center;">RTT</span>
+        <span style="font-size:13px;flex:1;">RTT</span>
+        <input type="number" id="soldeRTT" min="0" step="0.5" placeholder="jours" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:6px 10px;border-radius:6px;width:90px;outline:none;text-align:center;">
+        <span style="font-size:12px;color:var(--muted);">jours</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeSoldesModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveSoldesModal()">✅ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HORAIRES TYPES -->
+<div class="modal-overlay" id="horairesModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title">⚙️ Mes horaires types</div>
+    <div class="modal-body">Définissez vos horaires habituels. Le bouton <strong>⚡ Remplir semaine</strong> les appliquera en un clic sur tous les jours ouvrés de la semaine courante.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;">
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Heure début</label>
+        <input type="time" id="htStart" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Heure fin</label>
+        <input type="time" id="htEnd" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Pause repas</label>
+        <select id="htLunch" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:7px 10px;border-radius:6px;width:100%;outline:none;cursor:pointer;">
+          <option value="0">— Aucun</option>
+          <option value="30">− 0h30</option>
+          <option value="60" selected>− 1h00</option>
+          <option value="90">− 1h30</option>
+          <option value="120">− 2h00</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Heures suppl.</label>
+        <div style="display:flex;gap:6px;">
+          <input type="time" id="htExtraStart" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:7px 6px;border-radius:6px;width:50%;outline:none;">
+          <input type="time" id="htExtraEnd" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:7px 6px;border-radius:6px;width:50%;outline:none;">
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeHorairesModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveHorairesModal()">✅ Enregistrer</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL IMPRESSION -->
 <div class="modal-overlay" id="printModal">
