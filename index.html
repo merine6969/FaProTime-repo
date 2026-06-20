@@ -1095,8 +1095,6 @@
     <div class="hdr-sep"></div>
     <button class="btn btn-import" onclick="triggerImport()" title="Charger un fichier de sauvegarde JSON">📂 Charger</button>
     <button class="btn btn-export" onclick="exportData()" title="Exporter les données JSON">⬇️ Export JSON</button>
-    <button class="btn btn-ghost" onclick="exportExcel()" title="Exporter en Excel .xlsx" style="color:var(--green);border-color:var(--green);font-weight:700;">📊 Excel</button>
-    <button class="btn btn-ghost" onclick="openPdfModal()" title="Exporter en PDF" style="color:var(--accent2);border-color:var(--accent2);font-weight:700;">📄 PDF</button>
     <button class="btn btn-ghost" onclick="changeSaveFolder()" title="Changer le dossier de sauvegarde" style="font-size:11px;padding:5px 10px;">📁 Dossier</button>
     <span id="folderIndicator" style="display:none;font-size:10px;color:var(--green);font-family:'DM Mono',monospace;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
     <div class="hdr-sep"></div>
@@ -1382,14 +1380,14 @@
 <!-- MODAL IMPRESSION -->
 <div class="modal-overlay" id="printModal">
   <div class="modal" style="max-width:500px;">
-    <div class="modal-title">🖨️ Options d'impression</div>
-    <div class="modal-body">Choisissez ce que vous souhaitez imprimer :</div>
+    <div class="modal-title">🖨️ Options d'impression & export</div>
+    <div class="modal-body">Choisissez ce que vous souhaitez faire :</div>
 
     <!-- Option 1 : Mois en cours -->
     <div class="print-option" onclick="printCurrentMonth()">
       <div class="print-option-icon">📋</div>
       <div class="print-option-body">
-        <strong id="printOption1Label">Mois en cours</strong>
+        <strong id="printOption1Label">Imprimer le mois en cours</strong>
         <p>Le tableau complet du mois affiché avec tous les horaires, absences et commentaires.</p>
       </div>
     </div>
@@ -1398,7 +1396,7 @@
     <div class="print-option" onclick="toggleMonthPicker()">
       <div class="print-option-icon">📅</div>
       <div class="print-option-body">
-        <strong>Sélectionner plusieurs mois</strong>
+        <strong>Imprimer plusieurs mois</strong>
         <p>Choisissez les mois à imprimer (un tableau par mois, chacun sur sa propre page).</p>
       </div>
     </div>
@@ -1413,47 +1411,49 @@
     <div class="print-option" onclick="printFullYear()">
       <div class="print-option-icon">📆</div>
       <div class="print-option-body">
-        <strong id="printOption3Label">Année complète en tableau</strong>
+        <strong id="printOption3Label">Imprimer l'année complète</strong>
         <p>Tous les mois de l'année, chacun sur sa propre page, avec le récapitulatif annuel en première page.</p>
       </div>
     </div>
 
-    <div class="modal-actions" style="margin-top:16px;">
-      <button class="btn btn-ghost" onclick="closePrintModal()">Fermer</button>
-    </div>
-  </div>
-</div>
-<!-- MODAL EXPORT PDF -->
-<div class="modal-overlay" id="pdfModal">
-  <div class="modal" style="max-width:440px;">
-    <div class="modal-title">📄 Exporter en PDF</div>
-    <div class="modal-body">Choisissez les mois à exporter et optionnellement un logo d'entreprise.</div>
+    <div style="border-top:1px solid var(--border);margin:14px 0 10px;"></div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">📤 Export fichier</div>
 
-    <div class="settings-section" style="margin-top:14px;">
-      <div class="settings-section-title">📅 Période</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-ghost" style="font-size:12px;" onclick="setPdfScope('month')">Mois en cours</button>
-        <button class="btn btn-ghost" style="font-size:12px;" onclick="setPdfScope('year')">Année complète</button>
+    <!-- Option 4 : Excel -->
+    <div class="print-option" onclick="exportExcelFromModal()">
+      <div class="print-option-icon" style="background:rgba(52,211,153,.12);color:var(--green);">📊</div>
+      <div class="print-option-body">
+        <strong>Export Excel (.xlsx)</strong>
+        <p>Toute l'année en fichier Excel — une feuille par mois, totaux inclus.</p>
       </div>
-      <div id="pdfScopeLabel" style="margin-top:8px;font-size:12px;color:var(--accent);font-weight:600;"></div>
     </div>
 
-    <div class="settings-section">
-      <div class="settings-section-title">🖼️ Logo entreprise (optionnel)</div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <button class="btn btn-ghost" style="font-size:12px;" onclick="document.getElementById('logoFileInput').click()">📁 Choisir un logo</button>
-        <span id="logoFileName" style="font-size:11px;color:var(--muted);">Aucun logo sélectionné</span>
+    <!-- Option 5 : PDF avec logo -->
+    <div class="print-option" onclick="togglePdfOptions()">
+      <div class="print-option-icon" style="background:rgba(167,139,250,.12);color:var(--accent2);">📄</div>
+      <div class="print-option-body">
+        <strong>Export PDF avec logo</strong>
+        <p>Mois en cours ou année complète — avec logo d'entreprise optionnel.</p>
+      </div>
+    </div>
+    <!-- Options PDF inline -->
+    <div id="pdfOptionsBox" style="display:none;margin:10px 0 6px 0;padding:12px;background:var(--input-bg);border-radius:8px;border:1px solid var(--border);">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;">Période :</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="setPdfScope('month');generatePdf()">📋 Mois en cours</button>
+        <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="setPdfScope('year');generatePdf()">📆 Année complète</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;">Logo (optionnel) :</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn btn-ghost" style="font-size:12px;" onclick="document.getElementById('logoFileInput').click()">📁 Choisir</button>
+        <span id="logoFileName" style="font-size:11px;color:var(--muted);">Aucun logo</span>
+        <button id="clearLogoBtn" class="btn btn-ghost" style="font-size:11px;display:none;" onclick="clearLogo()">❌</button>
       </div>
       <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="handleLogoUpload(event)">
-      <div id="logoPreview" style="margin-top:10px;display:none;">
-        <img id="logoImg" style="max-height:60px;max-width:160px;border-radius:6px;border:1px solid var(--border);">
-        <button class="btn btn-ghost" style="font-size:11px;margin-top:6px;" onclick="clearLogo()">❌ Supprimer le logo</button>
-      </div>
     </div>
 
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closePdfModal()">Annuler</button>
-      <button class="btn btn-primary" onclick="generatePdf()">📄 Générer le PDF</button>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn btn-ghost" onclick="closePrintModal()">Fermer</button>
     </div>
   </div>
 </div>
@@ -2941,7 +2941,7 @@ function renderChart(days) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const W = canvas.offsetWidth || 800;
-  const H = 80;
+  const H = 100;
   canvas.width = W;
   canvas.height = H;
   ctx.clearRect(0, 0, W, H);
@@ -2951,42 +2951,70 @@ function renderChart(days) {
     return calcFromSaved(getRowData(dkey));
   });
 
-  const maxVal = Math.max(...mins, NORMAL_HOURS_DAY * 60);
+  const maxVal = Math.max(...mins.map(m => m.total || 0), NORMAL_HOURS_DAY * 60 + 60);
   const n = mins.length;
   if (n === 0) return;
 
-  const barW = Math.floor((W - 20) / n) - 3;
-  const normalH = Math.round((NORMAL_HOURS_DAY * 60 / maxVal) * (H - 16));
+  const isLight = document.body.classList.contains('theme-light');
+  const barW = Math.floor((W - 20) / n) - 2;
+  const usableH = H - 22; // espace pour labels en bas
+  const normalH = Math.round((NORMAL_HOURS_DAY * 60 / maxVal) * usableH);
 
-  // Ligne de référence heures normales
-  ctx.strokeStyle = 'rgba(79,142,247,0.2)';
+  // Fond léger
+  ctx.fillStyle = isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Ligne de référence 7h
+  const refY = H - 16 - normalH;
+  ctx.strokeStyle = 'rgba(79,142,247,0.4)';
+  ctx.lineWidth = 1;
   ctx.setLineDash([4, 4]);
   ctx.beginPath();
-  ctx.moveTo(8, H - 12 - normalH);
-  ctx.lineTo(W - 8, H - 12 - normalH);
+  ctx.moveTo(8, refY);
+  ctx.lineTo(W - 8, refY);
   ctx.stroke();
   ctx.setLineDash([]);
 
-  mins.forEach((m, i) => {
-    const x = 10 + i * (barW + 3);
-    const barH = m > 0 ? Math.max(3, Math.round((m / maxVal) * (H - 16))) : 0;
-    const y = H - 12 - barH;
+  // Label ligne de référence
+  ctx.fillStyle = 'rgba(79,142,247,0.7)';
+  ctx.font = '8px Arial, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(`${NORMAL_HOURS_DAY}h`, 2, refY - 2);
 
-    const color = m === 0 ? 'rgba(122,130,160,0.2)'
-                : m > NORMAL_HOURS_DAY * 60 ? '#fb923c'
-                : '#34d399';
+  mins.forEach((m, i) => {
+    const total = m.total || 0;
+    const x = 10 + i * (barW + 2);
+    const barH = total > 0 ? Math.max(4, Math.round((total / maxVal) * usableH)) : 0;
+    const y = H - 16 - barH;
+
+    // Couleur claire et visible dans les deux thèmes
+    let color;
+    if (total === 0) {
+      color = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
+    } else if (total > NORMAL_HOURS_DAY * 60) {
+      color = '#fb923c'; // orange toujours opaque
+    } else {
+      color = '#34d399'; // vert toujours opaque
+    }
 
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.roundRect(x, y, barW, barH, 3);
+    if (ctx.roundRect) {
+      ctx.roundRect(x, y, barW, barH, [3, 3, 0, 0]);
+    } else {
+      ctx.rect(x, y, barW, barH);
+    }
     ctx.fill();
 
-    // Label heures
-    if (m > 0) {
-      ctx.fillStyle = '#7a82a0';
-      ctx.font = '8px DM Mono, monospace';
+    // Label heures AU-DESSUS de la barre — couleur contrastée
+    if (total > 0) {
+      const labelColor = total > NORMAL_HOURS_DAY * 60
+        ? '#ea6d10'  // orange foncé lisible
+        : '#059669'; // vert foncé lisible
+      ctx.fillStyle = isLight ? labelColor : (total > NORMAL_HOURS_DAY * 60 ? '#fdba74' : '#6ee7b7');
+      ctx.font = `bold 8px Arial, sans-serif`;
       ctx.textAlign = 'center';
-      ctx.fillText(minToStr(m), x + barW/2, y - 2);
+      ctx.fillText(minToStr(total), x + barW / 2, Math.max(y - 2, 10));
     }
   });
 }
@@ -3111,6 +3139,19 @@ function updatePrintHeader() {
   document.getElementById('peUser').textContent    = currentFbUser ? currentFbUser.email : '';
 }
 
+function exportExcelFromModal() {
+  closePrintModal();
+  exportExcel();
+}
+
+function togglePdfOptions() {
+  const box = document.getElementById('pdfOptionsBox');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function openPdfModal() { /* redirige vers print modal */ openPrintModal(); }
+function closePdfModal() { closePrintModal(); }
+
 // ===================== EXPORT EXCEL =====================
 function exportExcel() {
   collectCurrentMonth();
@@ -3171,16 +3212,12 @@ let logoDataUrl = null;
 
 function openPdfModal() {
   setPdfScope('month');
-  document.getElementById('pdfModal').classList.add('show');
+  document.getElementById('printModal').classList.add('show');
 }
-function closePdfModal() { document.getElementById('pdfModal').classList.remove('show'); }
+function closePdfModal() { document.getElementById('printModal').classList.remove('show'); }
 
 function setPdfScope(scope) {
   pdfScope = scope;
-  const label = scope === 'month'
-    ? `📋 ${MONTHS[currentMonth]} ${currentYear}`
-    : `📆 Année complète ${currentYear} (12 mois)`;
-  document.getElementById('pdfScopeLabel').textContent = label;
 }
 
 function handleLogoUpload(event) {
@@ -3189,18 +3226,19 @@ function handleLogoUpload(event) {
   const reader = new FileReader();
   reader.onload = e => {
     logoDataUrl = e.target.result;
-    document.getElementById('logoImg').src = logoDataUrl;
-    document.getElementById('logoPreview').style.display = 'block';
     document.getElementById('logoFileName').textContent = file.name;
+    const clearBtn = document.getElementById('clearLogoBtn');
+    if (clearBtn) clearBtn.style.display = 'inline-flex';
   };
   reader.readAsDataURL(file);
 }
 
 function clearLogo() {
   logoDataUrl = null;
-  document.getElementById('logoPreview').style.display = 'none';
-  document.getElementById('logoFileName').textContent = 'Aucun logo sélectionné';
+  document.getElementById('logoFileName').textContent = 'Aucun logo';
   document.getElementById('logoFileInput').value = '';
+  const clearBtn = document.getElementById('clearLogoBtn');
+  if (clearBtn) clearBtn.style.display = 'none';
 }
 
 function generatePdf() {
@@ -3295,7 +3333,7 @@ function generatePdf() {
 
   const filename = `FaProTime_${currentYear}_${pdfScope === 'month' ? MONTHS[currentMonth] : 'Annee'}.pdf`;
   doc.save(filename);
-  closePdfModal();
+  closePrintModal();
   showNotif('📄 PDF téléchargé !');
 }
 
