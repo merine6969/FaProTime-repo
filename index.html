@@ -72,6 +72,22 @@
     --hover: #e2e8f5;
   }
 
+  /* ---- OPTIONS IMPRESSION COMPACTES ---- */
+  .print-opt {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .15s;
+    background: var(--card);
+  }
+  .print-opt:hover { border-color: var(--accent); background: var(--hover); }
+  .print-opt span { font-size: 20px; flex-shrink: 0; }
+  .print-opt small { color: var(--muted); font-size: 11px; }
+
   /* ---- BOUTON PARAMÈTRES ---- */
   .btn-settings {
     background: transparent;
@@ -1379,81 +1395,68 @@
 
 <!-- MODAL IMPRESSION -->
 <div class="modal-overlay" id="printModal">
-  <div class="modal" style="max-width:500px;">
-    <div class="modal-title">🖨️ Options d'impression & export</div>
-    <div class="modal-body">Choisissez ce que vous souhaitez faire :</div>
+  <div class="modal" style="max-width:460px;max-height:82vh;overflow-y:auto;padding:20px 24px;">
+    <div class="modal-title" style="margin-bottom:10px;">🖨️ Impression & Export</div>
 
-    <!-- Option 1 : Mois en cours -->
-    <div class="print-option" onclick="printCurrentMonth()">
-      <div class="print-option-icon">📋</div>
-      <div class="print-option-body">
-        <strong id="printOption1Label">Imprimer le mois en cours</strong>
-        <p>Le tableau complet du mois affiché avec tous les horaires, absences et commentaires.</p>
+    <!-- IMPRESSION -->
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;">🖨️ Imprimer</div>
+    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px;">
+
+      <div class="print-opt" onclick="printCurrentMonth()">
+        <span>📋</span>
+        <div><strong id="printOption1Label">Mois en cours</strong><br><small>Tableau complet du mois affiché</small></div>
+      </div>
+
+      <div class="print-opt" onclick="printFullYear()">
+        <span>📆</span>
+        <div><strong id="printOption3Label">Année complète</strong><br><small>12 mois + récapitulatif annuel</small></div>
+      </div>
+
+      <div class="print-opt" onclick="toggleMonthPicker()">
+        <span>📅</span>
+        <div><strong>Plusieurs mois</strong><br><small>Choisissez les mois à imprimer</small></div>
+      </div>
+
+      <div id="monthPicker" style="display:none;padding:10px;background:var(--input-bg);border-radius:8px;border:1px solid var(--border);">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600;">Sélectionnez les mois :</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;" id="monthPickerBtns"></div>
+        <button class="btn btn-primary" style="margin-top:8px;width:100%;font-size:12px;" onclick="printSelectedMonths()">🖨️ Imprimer la sélection</button>
       </div>
     </div>
 
-    <!-- Option 2 : Plusieurs mois -->
-    <div class="print-option" onclick="toggleMonthPicker()">
-      <div class="print-option-icon">📅</div>
-      <div class="print-option-body">
-        <strong>Imprimer plusieurs mois</strong>
-        <p>Choisissez les mois à imprimer (un tableau par mois, chacun sur sa propre page).</p>
-      </div>
-    </div>
-    <!-- Sélecteur de mois -->
-    <div id="monthPicker" style="display:none;margin:10px 0 6px 0;">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Sélectionnez les mois :</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;" id="monthPickerBtns"></div>
-      <button class="btn btn-cyan" style="margin-top:12px;width:100%;justify-content:center;" onclick="printSelectedMonths()">🖨️ Imprimer les mois sélectionnés</button>
-    </div>
+    <!-- EXPORT -->
+    <div style="border-top:1px solid var(--border);padding-top:10px;margin-bottom:6px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;">📤 Exporter</div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
 
-    <!-- Option 3 : Année complète -->
-    <div class="print-option" onclick="printFullYear()">
-      <div class="print-option-icon">📆</div>
-      <div class="print-option-body">
-        <strong id="printOption3Label">Imprimer l'année complète</strong>
-        <p>Tous les mois de l'année, chacun sur sa propre page, avec le récapitulatif annuel en première page.</p>
-      </div>
-    </div>
+        <div class="print-opt" onclick="exportExcelFromModal()">
+          <span style="color:var(--green);">📊</span>
+          <div><strong>Excel (.xlsx)</strong><br><small>Année complète — une feuille par mois</small></div>
+        </div>
 
-    <div style="border-top:1px solid var(--border);margin:14px 0 10px;"></div>
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">📤 Export fichier</div>
+        <div class="print-opt" onclick="togglePdfOptions()">
+          <span style="color:var(--accent2);">📄</span>
+          <div><strong>PDF avec logo</strong><br><small>Mois ou année — logo optionnel</small></div>
+        </div>
 
-    <!-- Option 4 : Excel -->
-    <div class="print-option" onclick="exportExcelFromModal()">
-      <div class="print-option-icon" style="background:rgba(52,211,153,.12);color:var(--green);">📊</div>
-      <div class="print-option-body">
-        <strong>Export Excel (.xlsx)</strong>
-        <p>Toute l'année en fichier Excel — une feuille par mois, totaux inclus.</p>
+        <div id="pdfOptionsBox" style="display:none;padding:10px;background:var(--input-bg);border-radius:8px;border:1px solid var(--border);">
+          <div style="display:flex;gap:6px;margin-bottom:8px;">
+            <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="setPdfScope('month');generatePdf()">📋 Mois</button>
+            <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="setPdfScope('year');generatePdf()">📆 Année</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-ghost" style="font-size:12px;" onclick="document.getElementById('logoFileInput').click()">🖼️ Logo (optionnel)</button>
+            <span id="logoFileName" style="font-size:11px;color:var(--muted);">Aucun</span>
+            <button id="clearLogoBtn" class="btn btn-ghost" style="font-size:11px;display:none;" onclick="clearLogo()">❌</button>
+          </div>
+          <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="handleLogoUpload(event)">
+        </div>
+
       </div>
     </div>
 
-    <!-- Option 5 : PDF avec logo -->
-    <div class="print-option" onclick="togglePdfOptions()">
-      <div class="print-option-icon" style="background:rgba(167,139,250,.12);color:var(--accent2);">📄</div>
-      <div class="print-option-body">
-        <strong>Export PDF avec logo</strong>
-        <p>Mois en cours ou année complète — avec logo d'entreprise optionnel.</p>
-      </div>
-    </div>
-    <!-- Options PDF inline -->
-    <div id="pdfOptionsBox" style="display:none;margin:10px 0 6px 0;padding:12px;background:var(--input-bg);border-radius:8px;border:1px solid var(--border);">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;">Période :</div>
-      <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="setPdfScope('month');generatePdf()">📋 Mois en cours</button>
-        <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="setPdfScope('year');generatePdf()">📆 Année complète</button>
-      </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;">Logo (optionnel) :</div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <button class="btn btn-ghost" style="font-size:12px;" onclick="document.getElementById('logoFileInput').click()">📁 Choisir</button>
-        <span id="logoFileName" style="font-size:11px;color:var(--muted);">Aucun logo</span>
-        <button id="clearLogoBtn" class="btn btn-ghost" style="font-size:11px;display:none;" onclick="clearLogo()">❌</button>
-      </div>
-      <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="handleLogoUpload(event)">
-    </div>
-
-    <div class="modal-actions" style="margin-top:16px;">
-      <button class="btn btn-ghost" onclick="closePrintModal()">Fermer</button>
+    <div class="modal-actions" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+      <button class="btn btn-ghost" onclick="closePrintModal()">✖ Fermer</button>
     </div>
   </div>
 </div>
@@ -3139,20 +3142,107 @@ function updatePrintHeader() {
   document.getElementById('peUser').textContent    = currentFbUser ? currentFbUser.email : '';
 }
 
+function togglePdfOptions() {
+  const box = document.getElementById('pdfOptionsBox');
+  if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
 function exportExcelFromModal() {
   closePrintModal();
   exportExcel();
 }
 
-function togglePdfOptions() {
-  const box = document.getElementById('pdfOptionsBox');
-  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+function exportExcel() {
+  collectCurrentMonth();
+
+  // Si SheetJS non disponible, fallback CSV
+  if (typeof XLSX === 'undefined') {
+    exportExcelAsCsv();
+    return;
+  }
+
+  try {
+    const wb = XLSX.utils.book_new();
+    const p = profileData || {};
+
+    MONTHS.forEach((mName, mi) => {
+      const days = getWorkDays(currentYear, mi);
+      const rows = [];
+      const header = p.nom ? `FaProTime — ${p.nom}${p.poste ? ' | '+p.poste : ''}${p.societe ? ' | '+p.societe : ''}` : 'FaProTime';
+      rows.push([header, '', '', '', '', '', '', '', '', '']);
+      rows.push([`${mName} ${currentYear}`, '', '', '', '', '', '', '', '', '']);
+      rows.push(['Jour', 'Date', 'Début', 'Repas', 'Fin', 'Début +', 'Fin +', 'Total', 'Absence', 'Commentaire']);
+
+      let totalMin = 0;
+      days.forEach(d => {
+        const dkey = dateKey(d);
+        const saved = getRowData(dkey);
+        const calc = calcFromSaved(saved);
+        totalMin += calc.total;
+        const dayNames = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+        rows.push([
+          dayNames[d.getDay()],
+          `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`,
+          saved.start || '', saved.lunch || '', saved.end || '',
+          saved.extraStart || '', saved.extraEnd || '',
+          calc.total > 0 ? minToStr(calc.total) : '0h00',
+          saved.absence && saved.absence !== '—' ? saved.absence : '',
+          saved.comment || ''
+        ]);
+      });
+      rows.push([]);
+      rows.push(['Total du mois', '', '', '', '', '', '', minToStr(totalMin), '', '']);
+
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [8,10,8,10,8,8,8,8,12,20].map(w => ({ wch: w }));
+      XLSX.utils.book_append_sheet(wb, ws, mName.substring(0,3));
+    });
+
+    const p2 = profileData || {};
+    const filename = `FaProTime_${currentYear}_${(p2.nom || 'planning').replace(/\s+/g,'_')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    showNotif('📊 Excel téléchargé !');
+  } catch(e) {
+    console.error('Excel error:', e);
+    showNotif('⚠️ Erreur Excel, export CSV à la place');
+    exportExcelAsCsv();
+  }
 }
 
-function openPdfModal() { /* redirige vers print modal */ openPrintModal(); }
-function closePdfModal() { closePrintModal(); }
+function exportExcelAsCsv() {
+  // Fallback CSV si XLSX indisponible
+  collectCurrentMonth();
+  const dayNames = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  let csv = 'Mois;Jour;Date;Début;Repas;Fin;Début +;Fin +;Total;Absence;Commentaire\n';
 
-// ===================== EXPORT EXCEL =====================
+  MONTHS.forEach((mName, mi) => {
+    const days = getWorkDays(currentYear, mi);
+    days.forEach(d => {
+      const dkey = dateKey(d);
+      const saved = getRowData(dkey);
+      const calc = calcFromSaved(saved);
+      const row = [
+        mName, dayNames[d.getDay()],
+        `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`,
+        saved.start||'', saved.lunch||'', saved.end||'',
+        saved.extraStart||'', saved.extraEnd||'',
+        calc.total > 0 ? minToStr(calc.total) : '0h00',
+        saved.absence && saved.absence !== '—' ? saved.absence : '',
+        (saved.comment||'').replace(/;/g,',')
+      ];
+      csv += row.join(';') + '\n';
+    });
+  });
+
+  const blob = new Blob(['\ufeff'+csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `FaProTime_${currentYear}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  showNotif('📊 Export CSV téléchargé !');
+}
 function exportExcel() {
   collectCurrentMonth();
   const wb = XLSX.utils.book_new();
