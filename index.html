@@ -1111,8 +1111,6 @@
     <div class="hdr-sep"></div>
     <button class="btn btn-import" onclick="triggerImport()" title="Charger un fichier de sauvegarde JSON">📂 Charger</button>
     <button class="btn btn-export" onclick="exportData()" title="Exporter les données JSON">⬇️ Export JSON</button>
-    <button class="btn btn-ghost" onclick="changeSaveFolder()" title="Changer le dossier de sauvegarde" style="font-size:11px;padding:5px 10px;">📁 Dossier</button>
-    <span id="folderIndicator" style="display:none;font-size:10px;color:var(--green);font-family:'DM Mono',monospace;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
     <div class="hdr-sep"></div>
     <button class="btn btn-ghost" onclick="openPrintModal()">🖨️ Imprimer</button>
     <button class="btn btn-green" onclick="saveAll()">💾 Sauvegarder</button>
@@ -1210,11 +1208,12 @@
         <thead>
           <tr>
             <th>Jour</th>
-            <th>Début</th>
-            <th>Repas</th>
-            <th>Fin</th>
-            <th>Début +</th>
-            <th>Fin +</th>
+            <th>Deb.M</th>
+            <th>Fin.M</th>
+            <th>Deb.AM</th>
+            <th>Fin.AM</th>
+            <th>Deb.S</th>
+            <th>Fin.S</th>
             <th>Total</th>
             <th>Type d'absence</th>
             <th>Commentaire</th>
@@ -1223,8 +1222,7 @@
         <tbody id="planningBody"></tbody>
         <tfoot>
           <tr class="total-row">
-            <td colspan="5"><span class="total-label">Total du mois</span></td>
-            <td colspan="4">
+            <td colspan="7"><span class="total-label">Total du mois</span></td><td colspan="3">
               <span class="total-value" id="totalMonthFoot">0h00</span>
               <span style="color:var(--muted);font-size:11px;margin-left:16px;" id="totalExtraFoot"></span>
               <span style="color:#f5c842;font-size:11px;margin-left:12px;" id="totalAbsFoot"></span>
@@ -1358,32 +1356,31 @@
 <div class="modal-overlay" id="horairesModal">
   <div class="modal" style="max-width:420px;">
     <div class="modal-title">⚙️ Mes horaires types</div>
-    <div class="modal-body">Définissez vos horaires habituels. Le bouton <strong>⚡ Remplir semaine</strong> les appliquera en un clic sur tous les jours ouvrés de la semaine courante.</div>
+    <div class="modal-body">Définissez vos horaires habituels. Le bouton <strong>⚡ Remplir semaine</strong> les appliquera en un clic.</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;">
       <div>
-        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Heure début</label>
-        <input type="time" id="htStart" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Matin début</label>
+        <input type="time" id="htMorningStart" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
       </div>
       <div>
-        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Heure fin</label>
-        <input type="time" id="htEnd" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Matin fin</label>
+        <input type="time" id="htMorningEnd" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
       </div>
       <div>
-        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Pause repas</label>
-        <select id="htLunch" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:7px 10px;border-radius:6px;width:100%;outline:none;cursor:pointer;">
-          <option value="0">— Aucun</option>
-          <option value="30">− 0h30</option>
-          <option value="60" selected>− 1h00</option>
-          <option value="90">− 1h30</option>
-          <option value="120">− 2h00</option>
-        </select>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Après-midi début</label>
+        <input type="time" id="htPmStart" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
       </div>
       <div>
-        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Heures suppl.</label>
-        <div style="display:flex;gap:6px;">
-          <input type="time" id="htExtraStart" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:7px 6px;border-radius:6px;width:50%;outline:none;">
-          <input type="time" id="htExtraEnd" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:7px 6px;border-radius:6px;width:50%;outline:none;">
-        </div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Après-midi fin</label>
+        <input type="time" id="htPmEnd" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Suppl. début</label>
+        <input type="time" id="htExtraStart" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Suppl. fin</label>
+        <input type="time" id="htExtraEnd" style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:7px 10px;border-radius:6px;width:100%;outline:none;">
       </div>
     </div>
     <div class="modal-actions">
@@ -1995,45 +1992,8 @@ function renderMonth() {
     tdDay.innerHTML = `<div class="day-label">${dayName}<span class="date-num">${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</span><span class="week-num">S${weekNum}</span></div>`;
     tr.appendChild(tdDay);
 
-    // Champs horaires : Début, puis select Repas, puis Fin, Début+, Fin+
-    // Début
-    ['start'].forEach(field => {
-      const td = document.createElement('td');
-      const inp = document.createElement('input');
-      inp.type = 'time';
-      inp.dataset.field = field;
-      inp.dataset.dkey = dkey;
-      inp.value = saved[field] || '';
-      inp.oninput = () => { autoSaveRow(dkey); recalcRow(dkey); };
-      td.appendChild(inp);
-      tr.appendChild(td);
-    });
-
-    // Select Repas (remplace Fin repas + Reprise)
-    const tdRepas = document.createElement('td');
-    const selRepas = document.createElement('select');
-    selRepas.className = 'repas-select';
-    selRepas.dataset.field = 'lunchBreak';
-    selRepas.dataset.dkey = dkey;
-    [
-      { val: '0',   txt: '— Aucun' },
-      { val: '30',  txt: '− 0h30' },
-      { val: '60',  txt: '− 1h00' },
-      { val: '90',  txt: '− 1h30' },
-      { val: '120', txt: '− 2h00' },
-    ].forEach(o => {
-      const opt = document.createElement('option');
-      opt.value = o.val;
-      opt.textContent = o.txt;
-      if (String(saved.lunchBreak || '0') === o.val) opt.selected = true;
-      selRepas.appendChild(opt);
-    });
-    selRepas.onchange = () => { autoSaveRow(dkey); recalcRow(dkey); };
-    tdRepas.appendChild(selRepas);
-    tr.appendChild(tdRepas);
-
-    // Fin, Début+, Fin+
-    ['end','extraStart','extraEnd'].forEach(field => {
+    // Champs horaires : Deb.M, Fin.M, Deb.AM, Fin.AM, Deb.S, Fin.S
+    ['morningStart','morningEnd','pmStart','pmEnd','extraStart','extraEnd'].forEach(field => {
       const td = document.createElement('td');
       const inp = document.createElement('input');
       inp.type = 'time';
@@ -2112,7 +2072,7 @@ function applyAbsenceStyle(tr, code, badge) {
   // Retirer toutes les classes row-*
   tr.className = tr.className.replace(/\brow-\S+/g, '').trim();
 
-  const timeFields = ['start','lunchBreak','end','extraStart','extraEnd'];
+  const timeFields = ['morningStart','morningEnd','pmStart','pmEnd','extraStart','extraEnd'];
   const hoursCell = tr.querySelector('.hours-cell');
 
   if (code && code !== '—') {
@@ -2141,7 +2101,7 @@ function applyAbsenceStyle(tr, code, badge) {
         inp.parentElement.appendChild(lbl);
       }
       // N'afficher le mot que sur la première cellule (start)
-      lbl.textContent = field === 'start' ? (absInfo ? absInfo.full : 'Absent') : '';
+      lbl.textContent = field === 'morningStart' ? (absInfo ? absInfo.full : 'Absent') : '';
       lbl.style.display = 'inline';
     });
 
@@ -2187,26 +2147,39 @@ function calcRowMinutes(dkey) {
   if (!row) return 0;
   const get = f => { const el = row.querySelector(`[data-field="${f}"]`); return el ? el.value : ''; };
 
-  const start      = timeToMin(get('start'));
-  const end        = timeToMin(get('end'));
-  const lunchBreak = parseInt(get('lunchBreak') || '0');
-  const extraStart = timeToMin(get('extraStart'));
-  const extraEnd   = timeToMin(get('extraEnd'));
+  const ms = timeToMin(get('morningStart'));
+  const me = timeToMin(get('morningEnd'));
+  const ps = timeToMin(get('pmStart'));
+  const pe = timeToMin(get('pmEnd'));
+  const es = timeToMin(get('extraStart'));
+  const ee = timeToMin(get('extraEnd'));
 
   let total = 0;
-  if (start !== null && end !== null) total += Math.max(0, end - start - lunchBreak);
-  if (extraStart !== null && extraEnd !== null) total += Math.max(0, extraEnd - extraStart);
+  if (ms !== null && me !== null) total += Math.max(0, me - ms);
+  if (ps !== null && pe !== null) total += Math.max(0, pe - ps);
+  if (es !== null && ee !== null) total += Math.max(0, ee - es);
   return total;
 }
 
 function calcFromSaved(saved) {
-  const s  = timeToMin(saved.start);
-  const e  = timeToMin(saved.end);
-  const lb = parseInt(saved.lunchBreak || '0');
+  const ms = timeToMin(saved.morningStart);
+  const me = timeToMin(saved.morningEnd);
+  const ps = timeToMin(saved.pmStart);
+  const pe = timeToMin(saved.pmEnd);
   const es = timeToMin(saved.extraStart);
   const ee = timeToMin(saved.extraEnd);
+  // Migration ancien format start/end/lunchBreak
+  if (!ms && !me && !ps && !pe && (saved.start || saved.end)) {
+    const s = timeToMin(saved.start), e = timeToMin(saved.end);
+    const lb = parseInt(saved.lunchBreak || '0');
+    let t = 0;
+    if (s !== null && e !== null) t += Math.max(0, e - s - lb);
+    if (es !== null && ee !== null) t += Math.max(0, ee - es);
+    return t;
+  }
   let total = 0;
-  if (s !== null && e !== null) total += Math.max(0, e - s - lb);
+  if (ms !== null && me !== null) total += Math.max(0, me - ms);
+  if (ps !== null && pe !== null) total += Math.max(0, pe - ps);
   if (es !== null && ee !== null) total += Math.max(0, ee - es);
   return total;
 }
@@ -2342,8 +2315,6 @@ function setView(v) {
 
 // ===================== EXPORT / IMPORT =====================
 
-let savedDirHandle = null; // Handle du dossier choisi, conservé en mémoire de session
-
 async function exportData() {
   collectCurrentMonth();
 
@@ -2351,91 +2322,19 @@ async function exportData() {
     version: 4,
     exportDate: new Date().toISOString(),
     exportDateFr: new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }),
-    data,
-    objectives,
-    soldes,
-    horairesTypes,
-    profileData,
+    data, objectives, soldes, horairesTypes, profileData,
   };
 
   const json = JSON.stringify(exportObj, null, 2);
   const filename = `faprotime-sauvegarde.json`;
-
-  // Tentative via File System Access API (Vivaldi/Chrome/Edge)
-  if (window.showDirectoryPicker) {
-    try {
-      // Si pas encore de dossier choisi, demander
-      if (!savedDirHandle) {
-        savedDirHandle = await window.showDirectoryPicker({
-          mode: 'readwrite',
-          startIn: 'documents'
-        });
-      }
-
-      // Vérifier qu'on a toujours les permissions
-      const perm = await savedDirHandle.queryPermission({ mode: 'readwrite' });
-      if (perm !== 'granted') {
-        await savedDirHandle.requestPermission({ mode: 'readwrite' });
-      }
-
-      // Écrire le fichier directement dans le dossier
-      const fileHandle = await savedDirHandle.getFileHandle(filename, { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(json);
-      await writable.close();
-
-      // Mémoriser le nom du dossier pour l'afficher
-      const folderName = savedDirHandle.name;
-      showNotif(`✅ Sauvegardé dans "${folderName}"`);
-
-      // Mettre à jour l'indicateur de dossier dans le header
-      updateFolderIndicator(folderName, filename);
-      return;
-
-    } catch(err) {
-      if (err.name === 'AbortError') {
-        // L'utilisateur a annulé la sélection de dossier
-        showNotif('⚠️ Sélection annulée');
-        return;
-      }
-      // Autre erreur → fallback téléchargement classique
-      savedDirHandle = null;
-      console.warn('File System API échouée, fallback téléchargement', err);
-    }
-  }
-
-  // FALLBACK : téléchargement classique (Firefox, Safari, ou erreur)
   const blob = new Blob([json], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
   a.click();
-  URL.revokeObjectURL(url);
-  showNotif(`⬇️ Téléchargé : ${filename}`);
-}
-
-function updateFolderIndicator(folderName, filename) {
-  const el = document.getElementById('folderIndicator');
-  if (el) {
-    el.textContent = `📁 ${folderName} / ${filename}`;
-    el.style.display = 'inline';
-  }
-}
-
-// Changer de dossier de sauvegarde
-async function changeSaveFolder() {
-  if (!window.showDirectoryPicker) {
-    showNotif('⚠️ Non supporté par ce navigateur');
-    return;
-  }
-  try {
-    savedDirHandle = await window.showDirectoryPicker({ mode: 'readwrite', startIn: 'documents' });
-    updateFolderIndicator(savedDirHandle.name, '—');
-    showNotif(`📁 Dossier choisi : "${savedDirHandle.name}"`);
-  } catch(e) {
-    if (e.name !== 'AbortError') showNotif('❌ Erreur sélection dossier');
-  }
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  showNotif(`⬇️ Exporté : ${filename}`);
 }
 
 // Ouvre la boîte de sélection de fichier
@@ -2591,13 +2490,12 @@ function buildMonthPrintHTML(year, monthIdx) {
     const absLabel = absCode !== '—' ? absCode : '';
     const rowBg = absCode !== '—' ? 'background:#f5f5f5;' : '';
 
-    const lbMin = parseInt(saved.lunchBreak || '0');
-    const lbStr = lbMin > 0 ? `− ${Math.floor(lbMin/60)}h${String(lbMin%60).padStart(2,'0')}` : '';
     rows += `<tr style="${rowBg}">
       <td><strong>${dayName}</strong><br><span style="font-size:9px;color:#666;">${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</span></td>
-      <td style="font-family:monospace;">${saved.start||''}</td>
-      <td style="font-family:monospace;">${lbStr}</td>
-      <td style="font-family:monospace;">${saved.end||''}</td>
+      <td style="font-family:monospace;">${saved.morningStart||''}</td>
+      <td style="font-family:monospace;">${saved.morningEnd||''}</td>
+      <td style="font-family:monospace;">${saved.pmStart||''}</td>
+      <td style="font-family:monospace;">${saved.pmEnd||''}</td>
       <td style="font-family:monospace;">${saved.extraStart||''}</td>
       <td style="font-family:monospace;">${saved.extraEnd||''}</td>
       <td style="font-family:monospace;font-weight:700;color:${mins>NORMAL_HOURS_DAY*60?'#c05000':'#147a50'};">${minToStr(mins)}</td>
@@ -2617,13 +2515,12 @@ function buildMonthPrintHTML(year, monthIdx) {
       </div>
       <table>
         <thead><tr>
-          <th>Jour</th><th>Début</th><th>Repas</th><th>Fin</th>
-          <th>Début +</th><th>Fin +</th><th>Total</th><th>Absence</th><th>Commentaire</th>
+          <th>Jour</th><th>Deb.M</th><th>Fin.M</th><th>Deb.AM</th><th>Fin.AM</th>
+          <th>Deb.S</th><th>Fin.S</th><th>Total</th><th>Absence</th><th>Commentaire</th>
         </tr></thead>
         <tbody>${rows}</tbody>
         <tfoot><tr class="print-total-row">
-          <td colspan="6"><span class="total-label">Total du mois</span></td>
-          <td colspan="4">
+          <td colspan="7"><span class="total-label">Total du mois</span></td><td colspan="3">
             <span class="total-value">${minToStr(totalMin)}</span>
             ${extraMin > 0 ? `<span style="font-size:10px;color:#777;margin-left:12px;">dont ${minToStr(extraMin)} suppl.</span>` : ''}
             ${absDays > 0 ? `<span style="font-size:10px;color:#b08000;margin-left:10px;">${absDays} jour(s) d'absence</span>` : ''}
@@ -2873,22 +2770,24 @@ function saveSoldesModal() {
 // ===================== HORAIRES TYPES =====================
 
 function openHorairesModal() {
-  const h = getHorairesTypes() || { start:'08:00', end:'17:00', lunchBreak:'60', extraStart:'', extraEnd:'' };
-  document.getElementById('htStart').value = h.start || '';
-  document.getElementById('htEnd').value = h.end || '';
-  document.getElementById('htLunch').value = h.lunchBreak || '60';
-  document.getElementById('htExtraStart').value = h.extraStart || '';
-  document.getElementById('htExtraEnd').value = h.extraEnd || '';
+  const h = getHorairesTypes() || {};
+  document.getElementById('htMorningStart').value = h.morningStart || h.start || '';
+  document.getElementById('htMorningEnd').value   = h.morningEnd   || '';
+  document.getElementById('htPmStart').value      = h.pmStart      || '';
+  document.getElementById('htPmEnd').value        = h.pmEnd        || h.end || '';
+  document.getElementById('htExtraStart').value   = h.extraStart   || '';
+  document.getElementById('htExtraEnd').value     = h.extraEnd     || '';
   document.getElementById('horairesModal').classList.add('show');
 }
 function closeHorairesModal() { document.getElementById('horairesModal').classList.remove('show'); }
 function saveHorairesModal() {
   const h = {
-    start: document.getElementById('htStart').value,
-    end: document.getElementById('htEnd').value,
-    lunchBreak: document.getElementById('htLunch').value,
-    extraStart: document.getElementById('htExtraStart').value,
-    extraEnd: document.getElementById('htExtraEnd').value,
+    morningStart: document.getElementById('htMorningStart').value,
+    morningEnd:   document.getElementById('htMorningEnd').value,
+    pmStart:      document.getElementById('htPmStart').value,
+    pmEnd:        document.getElementById('htPmEnd').value,
+    extraStart:   document.getElementById('htExtraStart').value,
+    extraEnd:     document.getElementById('htExtraEnd').value,
   };
   saveHorairesTypes(h);
   closeHorairesModal();
@@ -2924,11 +2823,12 @@ function applyHorairesWeek() {
     if (!data[currentYear][currentMonth]) data[currentYear][currentMonth] = {};
     data[currentYear][currentMonth][dkey] = {
       ...saved,
-      start: h.start,
-      end: h.end,
-      lunchBreak: h.lunchBreak,
-      extraStart: h.extraStart || '',
-      extraEnd: h.extraEnd || '',
+      morningStart: h.morningStart || '',
+      morningEnd:   h.morningEnd   || '',
+      pmStart:      h.pmStart      || '',
+      pmEnd:        h.pmEnd        || '',
+      extraStart:   h.extraStart   || '',
+      extraEnd:     h.extraEnd     || '',
     };
     filled++;
   });
@@ -3035,7 +2935,7 @@ function checkMissingDays() {
     if (!row) return;
 
     const saved = getRowData(dkey);
-    const hasHours = saved.start && saved.end;
+    const hasHours = (saved.morningStart && saved.morningEnd) || (saved.pmStart && saved.pmEnd) || (saved.start && saved.end);
     const hasAbsence = saved.absence && saved.absence !== '—';
     const isMissing = isPast && !hasHours && !hasAbsence;
 
@@ -3171,21 +3071,22 @@ function exportExcel() {
       const header = p.nom ? `FaProTime — ${p.nom}${p.poste ? ' | '+p.poste : ''}${p.societe ? ' | '+p.societe : ''}` : 'FaProTime';
       rows.push([header, '', '', '', '', '', '', '', '', '']);
       rows.push([`${mName} ${currentYear}`, '', '', '', '', '', '', '', '', '']);
-      rows.push(['Jour', 'Date', 'Début', 'Repas', 'Fin', 'Début +', 'Fin +', 'Total', 'Absence', 'Commentaire']);
+      rows.push(['Jour', 'Date', 'Deb.M', 'Fin.M', 'Deb.AM', 'Fin.AM', 'Deb.S', 'Fin.S', 'Total', 'Absence', 'Commentaire']);
 
       let totalMin = 0;
       days.forEach(d => {
         const dkey = dateKey(d);
         const saved = getRowData(dkey);
         const calc = calcFromSaved(saved);
-        totalMin += calc.total;
+        totalMin += calc;
         const dayNames = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
         rows.push([
           dayNames[d.getDay()],
           `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`,
-          saved.start || '', saved.lunch || '', saved.end || '',
+          saved.morningStart || '', saved.morningEnd || '',
+          saved.pmStart || '', saved.pmEnd || '',
           saved.extraStart || '', saved.extraEnd || '',
-          calc.total > 0 ? minToStr(calc.total) : '0h00',
+          calc > 0 ? minToStr(calc) : '0h00',
           saved.absence && saved.absence !== '—' ? saved.absence : '',
           saved.comment || ''
         ]);
@@ -3213,7 +3114,7 @@ function exportExcelAsCsv() {
   // Fallback CSV si XLSX indisponible
   collectCurrentMonth();
   const dayNames = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-  let csv = 'Mois;Jour;Date;Début;Repas;Fin;Début +;Fin +;Total;Absence;Commentaire\n';
+  let csv = 'Mois;Jour;Date;Deb.M;Fin.M;Deb.AM;Fin.AM;Deb.S;Fin.S;Total;Absence;Commentaire\n';
 
   MONTHS.forEach((mName, mi) => {
     const days = getWorkDays(currentYear, mi);
@@ -3224,9 +3125,10 @@ function exportExcelAsCsv() {
       const row = [
         mName, dayNames[d.getDay()],
         `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`,
-        saved.start||'', saved.lunch||'', saved.end||'',
+        saved.morningStart||'', saved.morningEnd||'',
+        saved.pmStart||'', saved.pmEnd||'',
         saved.extraStart||'', saved.extraEnd||'',
-        calc.total > 0 ? minToStr(calc.total) : '0h00',
+        calc > 0 ? minToStr(calc) : '0h00',
         saved.absence && saved.absence !== '—' ? saved.absence : '',
         (saved.comment||'').replace(/;/g,',')
       ];
@@ -3243,58 +3145,7 @@ function exportExcelAsCsv() {
   setTimeout(() => URL.revokeObjectURL(url), 5000);
   showNotif('📊 Export CSV téléchargé !');
 }
-function exportExcel() {
-  collectCurrentMonth();
-  const wb = XLSX.utils.book_new();
-  const p = profileData || {};
 
-  // Une feuille par mois avec données
-  MONTHS.forEach((mName, mi) => {
-    const days = getWorkDays(currentYear, mi);
-    const rows = [];
-
-    // En-tête
-    rows.push([
-      `FaProTime — ${p.nom || ''} ${p.poste ? '| '+p.poste : ''} ${p.societe ? '| '+p.societe : ''}`.trim(),
-      '', '', '', '', '', '', ''
-    ]);
-    rows.push([`${mName} ${currentYear}`, '', '', '', '', '', '', '']);
-    rows.push(['Jour', 'Date', 'Début', 'Repas', 'Fin', 'Début +', 'Fin +', 'Total', 'Absence', 'Commentaire']);
-
-    let totalMin = 0;
-    days.forEach(d => {
-      const dkey = dateKey(d);
-      const saved = getRowData(dkey);
-      const calc = calcFromSaved(saved);
-      totalMin += calc.total;
-      const dayNames = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-      rows.push([
-        dayNames[d.getDay()],
-        `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`,
-        saved.start || '',
-        saved.lunch || '',
-        saved.end   || '',
-        saved.extraStart || '',
-        saved.extraEnd   || '',
-        calc.total > 0 ? minToStr(calc.total) : '0h00',
-        saved.absence && saved.absence !== '—' ? saved.absence : '',
-        saved.comment || ''
-      ]);
-    });
-
-    rows.push([]);
-    rows.push(['Total du mois', '', '', '', '', '', '', minToStr(totalMin)]);
-
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    // Largeurs colonnes
-    ws['!cols'] = [8,10,8,8,8,8,8,8,12,20].map(w => ({ wch: w }));
-    XLSX.utils.book_append_sheet(wb, ws, mName.substring(0,3));
-  });
-
-  const filename = `FaProTime_${currentYear}_${(p.nom || 'planning').replace(/\s+/g,'_')}.xlsx`;
-  XLSX.writeFile(wb, filename);
-  showNotif('📊 Export Excel téléchargé !');
-}
 
 // ===================== EXPORT PDF =====================
 let pdfScope = 'month';
@@ -3383,17 +3234,15 @@ function generatePdf() {
       const dkey = dateKey(d);
       const saved = getRowData(dkey);
       const calc = calcFromSaved(saved);
-      totalMin += calc.total;
+      totalMin += calc;
       const dayNames = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
       return [
         dayNames[d.getDay()],
         `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`,
-        saved.start || '',
-        saved.lunch || '',
-        saved.end   || '',
-        saved.extraStart || '',
-        saved.extraEnd   || '',
-        calc.total > 0 ? minToStr(calc.total) : '0h00',
+        saved.morningStart || '', saved.morningEnd || '',
+        saved.pmStart || '', saved.pmEnd || '',
+        saved.extraStart || '', saved.extraEnd || '',
+        calc > 0 ? minToStr(calc) : '0h00',
         saved.absence && saved.absence !== '—' ? saved.absence : '',
         saved.comment || ''
       ];
