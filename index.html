@@ -1110,11 +1110,8 @@
     </div>
     <div class="hdr-sep"></div>
     <button class="btn btn-import" onclick="triggerImport()" title="Charger un fichier de sauvegarde JSON">📂 Charger</button>
-    <button class="btn btn-export" onclick="exportData()" title="Exporter les données JSON">⬇️ Export JSON</button>
-    <div class="hdr-sep"></div>
-    <button class="btn btn-ghost" onclick="openPrintModal()">🖨️ Imprimer</button>
+    <button class="btn btn-ghost" onclick="openPrintModal()" title="Imprimer, exporter Excel/PDF/JSON">🖨️ Imprimer & Export</button>
     <button class="btn btn-green" onclick="saveAll()">💾 Sauvegarder</button>
-    <button class="btn btn-danger" onclick="handleLogout()" title="Se déconnecter" style="font-size:11px;padding:5px 10px;">🚪 Déconnexion</button>
     <button class="btn-settings" onclick="openSettingsModal()" title="Paramètres">⚙️</button>
   </div>
   <!-- Input fichier caché pour l'import -->
@@ -1129,9 +1126,8 @@
   <div class="month-tabs" id="monthTabs"></div>
   <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
     <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openObjectiveModal()" title="Définir l'objectif d'heures du mois">🎯 Objectif</button>
-    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openSoldesModal()" title="Gérer le solde de congés">🏖️ Soldes congés</button>
-    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openHorairesModal()" title="Définir mes horaires types">⚙️ Horaires types</button>
-    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openProfileModal()" title="Mon profil pour l'impression">👤 Mon profil</button>
+    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openSoldesModal()" title="Gérer le solde de congés">🏖️ Soldes</button>
+    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openHorairesModal()" title="Définir mes horaires types">🕐 Horaires types</button>
     <button class="btn btn-primary" style="font-size:12px;padding:5px 11px;" onclick="applyHorairesWeek()" title="Remplir la semaine avec les horaires types">⚡ Remplir semaine</button>
   </div>
 </div>
@@ -1426,6 +1422,11 @@
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;">📤 Exporter</div>
       <div style="display:flex;flex-direction:column;gap:5px;">
 
+        <div class="print-opt" onclick="exportData();closePrintModal()">
+          <span style="color:var(--accent);">⬇️</span>
+          <div><strong>Export JSON</strong><br><small>Sauvegarde complète de toutes vos données</small></div>
+        </div>
+
         <div class="print-opt" onclick="exportExcelFromModal()">
           <span style="color:var(--green);">📊</span>
           <div><strong>Excel (.xlsx)</strong><br><small>Année complète — une feuille par mois</small></div>
@@ -1482,9 +1483,20 @@
       </div>
     </div>
 
+    <!-- MON PROFIL -->
+    <div class="settings-section">
+      <div class="settings-section-title">👤 Mon profil (en-tête impression)</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <input type="text" id="settingsNom" class="profile-modal-input" placeholder="Nom et Prénom">
+        <input type="text" id="settingsPoste" class="profile-modal-input" placeholder="Poste / Fonction">
+        <input type="text" id="settingsSociete" class="profile-modal-input" placeholder="Société / Établissement">
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:10px;font-size:13px;" onclick="saveProfileFromSettings()">✅ Enregistrer le profil</button>
+    </div>
+
     <!-- COMPTE -->
     <div class="settings-section">
-      <div class="settings-section-title">👤 Compte</div>
+      <div class="settings-section-title">🔐 Compte</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">
         Connecté en tant que : <strong id="settingsEmail" style="color:var(--text);"></strong>
       </div>
@@ -3280,6 +3292,10 @@ function generatePdf() {
 function openSettingsModal() {
   // Email
   document.getElementById('settingsEmail').textContent = currentFbUser ? currentFbUser.email : '';
+  // Charger profil dans les champs
+  document.getElementById('settingsNom').value     = profileData.nom     || '';
+  document.getElementById('settingsPoste').value   = profileData.poste   || '';
+  document.getElementById('settingsSociete').value = profileData.societe || '';
   // Thème actif
   const t = localStorage.getItem('faprotime_theme') || 'dark';
   updateThemeBtns(t);
@@ -3289,6 +3305,17 @@ function openSettingsModal() {
 }
 function closeSettingsModal() {
   document.getElementById('settingsModal').classList.remove('show');
+}
+
+function saveProfileFromSettings() {
+  profileData = {
+    nom:     document.getElementById('settingsNom').value.trim(),
+    poste:   document.getElementById('settingsPoste').value.trim(),
+    societe: document.getElementById('settingsSociete').value.trim(),
+  };
+  persistData();
+  updatePrintHeader();
+  showNotif('✅ Profil enregistré');
 }
 
 // ===================== THÈME =====================
