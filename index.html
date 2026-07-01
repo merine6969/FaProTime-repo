@@ -15,6 +15,9 @@
 <meta name="apple-mobile-web-app-title" content="FaProTime">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
+<!-- Lucide Icons -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -969,6 +972,7 @@
   .sync-indicator.syncing { color: var(--accent); }
   .sync-indicator.synced { color: var(--green); }
   .sync-indicator.error { color: var(--red); }
+  .sync-indicator.offline { color: var(--orange); }
   .sync-dot {
     width: 7px; height: 7px;
     border-radius: 50%;
@@ -977,7 +981,97 @@
   .sync-indicator.syncing .sync-dot { background: var(--accent); animation: pulse 1s infinite; }
   .sync-indicator.synced .sync-dot { background: var(--green); }
   .sync-indicator.error .sync-dot { background: var(--red); }
+  .sync-indicator.offline .sync-dot { background: var(--orange); animation: pulse 1.4s infinite; }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+  /* ---- KBD (raccourcis clavier) ---- */
+  .kbd {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    padding: 2px 7px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  /* ---- FINITIONS TACTILES MOBILE ---- */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    tap-highlight-color: transparent;
+  }
+  button, .btn, .day-card, .print-opt, .theme-btn, .month-tab, .view-btn, select, input {
+    touch-action: manipulation;
+  }
+  button, .btn { user-select: none; -webkit-user-select: none; }
+
+  @media (max-width: 768px) {
+    #kbdShortcutsSection { display: none; }
+
+    /* Empêche le zoom automatique iOS/Android sur les champs de saisie (16px minimum requis) */
+    .day-card-field input[type="time"],
+    .day-card-absence select,
+    .day-card-comment input,
+    input[type="text"], input[type="number"], input[type="email"],
+    input[type="password"], input[type="time"], select {
+      font-size: 16px !important;
+    }
+    /* Safe area iOS (notch / barre de gestes) */
+    body { padding-bottom: env(safe-area-inset-bottom); }
+    header { padding-top: max(8px, env(safe-area-inset-top)); }
+  }
+
+  /* ---- ICÔNES LUCIDE ---- */
+  .icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .icon svg { stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .btn .icon { margin-right: 5px; width: 15px; height: 15px; }
+  .btn .icon svg { width: 15px; height: 15px; }
+  .btn-settings .icon { margin-right: 0; width: 18px; height: 18px; }
+  .btn-settings .icon svg { width: 18px; height: 18px; }
+
+  /* ---- RESPONSIVE MOBILE ---- */
+  @media (max-width: 768px) {
+    .header-clock { display: none; }
+    header { padding: 0 10px; height: auto; min-height: 52px; flex-wrap: wrap; gap: 4px; padding-top: 8px; padding-bottom: 8px; }
+    .header-controls { gap: 5px; flex-wrap: wrap; width: 100%; justify-content: flex-end; }
+    .hdr-sep { display: none; }
+    .btn { font-size: 11px; padding: 5px 8px; }
+    .btn-text { display: none; }
+    .view-toggle { gap: 3px; }
+    .view-btn { font-size: 11px; padding: 4px 9px; }
+    .nav-bar { padding: 8px 10px; gap: 5px; flex-direction: column; align-items: stretch; }
+    .month-tabs { gap: 3px; }
+    .month-tab { font-size: 10px; padding: 3px 6px; }
+    .nav-bar > div[style*="margin-left:auto"] { margin-left: 0 !important; display: flex; flex-wrap: wrap; gap: 5px; }
+    .nav-bar > div[style*="margin-left:auto"] .btn { flex: 1; min-width: 70px; text-align: center; justify-content: center; }
+    main { padding: 10px; }
+    .month-summary { gap: 5px; }
+    .summary-chip { padding: 6px 10px; }
+    .summary-chip .val { font-size: 14px; }
+    .planning-table-wrap { display: none; }
+    #mobileCards { display: flex; flex-direction: column; gap: 8px; }
+    .annual-grid { grid-template-columns: repeat(2,1fr); gap: 8px; }
+  }
+  @media (min-width: 769px) {
+    #mobileCards { display: none; }
+    .btn-text { display: inline; }
+  }
+
+  /* ---- CARTES MOBILE ---- */
+  .day-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .day-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .day-card-title { font-weight: 700; font-size: 14px; }
+  .day-card-date { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .day-card-total { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 700; color: var(--green); }
+  .day-card-total.over { color: var(--orange); }
+  .day-card-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; margin-bottom: 8px; }
+  .day-card-field label { font-size: 10px; color: var(--muted); display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: .04em; }
+  .day-card-field input[type="time"],
+  .day-card-absence select,
+  .day-card-comment input { width: 100%; background: var(--input-bg); border: 1px solid var(--border); color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; padding: 6px 8px; border-radius: 6px; outline: none; }
+  .day-card-absence select, .day-card-comment input { font-family: 'DM Sans', monospace; font-size: 12px; }
+  .day-card-field input:focus, .day-card-absence select:focus, .day-card-comment input:focus { border-color: var(--accent); }
 
   /* ---- PRINT STYLES ---- */
   @media print {
@@ -1109,10 +1203,10 @@
       <button class="view-btn" id="btnAnnual" onclick="setView('annual')">Annuel</button>
     </div>
     <div class="hdr-sep"></div>
-    <button class="btn btn-import" onclick="triggerImport()" title="Charger un fichier de sauvegarde JSON">📂 Charger</button>
-    <button class="btn btn-ghost" onclick="openPrintModal()" title="Imprimer, exporter Excel/PDF/JSON">🖨️ Imprimer & Export</button>
-    <button class="btn btn-green" onclick="saveAll()">💾 Sauvegarder</button>
-    <button class="btn-settings" onclick="openSettingsModal()" title="Paramètres">⚙️</button>
+    <button class="btn btn-import" onclick="triggerImport()" title="Charger un fichier de sauvegarde JSON"><span class="icon" data-lucide="upload"></span><span class="btn-text">Charger</span></button>
+    <button class="btn btn-ghost" onclick="openPrintModal()" title="Imprimer, exporter Excel/PDF/JSON"><span class="icon" data-lucide="printer"></span><span class="btn-text">Imprimer & Export</span></button>
+    <button class="btn btn-green" onclick="saveAll()"><span class="icon" data-lucide="save"></span><span class="btn-text">Sauvegarder</span></button>
+    <button class="btn-settings" onclick="openSettingsModal()" title="Paramètres"><span class="icon" data-lucide="settings"></span></button>
   </div>
   <!-- Input fichier caché pour l'import -->
   <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importData(event)">
@@ -1121,14 +1215,14 @@
 <div class="nav-bar">
   <span class="nav-label">Année</span>
   <select class="nav-select" id="yearSelect" onchange="changeYear()"></select>
-  <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="goToToday()" title="Revenir au mois et à l'année actuels">📍 Aujourd'hui</button>
+  <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="goToToday()" title="Revenir au mois et à l'année actuels"><span class="icon" data-lucide="calendar-check"></span><span class="btn-text">Aujourd'hui</span></button>
   <span class="nav-label">Mois</span>
   <div class="month-tabs" id="monthTabs"></div>
   <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
-    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openObjectiveModal()" title="Définir l'objectif d'heures du mois">🎯 Objectif</button>
-    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openSoldesModal()" title="Gérer le solde de congés">🏖️ Soldes</button>
-    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openHorairesModal()" title="Définir mes horaires types">🕐 Horaires types</button>
-    <button class="btn btn-primary" style="font-size:12px;padding:5px 11px;" onclick="applyHorairesWeek()" title="Remplir la semaine avec les horaires types">⚡ Remplir semaine</button>
+    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openObjectiveModal()" title="Définir l'objectif d'heures du mois"><span class="icon" data-lucide="target"></span><span class="btn-text">Objectif</span></button>
+    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openSoldesModal()" title="Gérer le solde de congés"><span class="icon" data-lucide="palmtree"></span><span class="btn-text">Soldes</span></button>
+    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openHorairesModal()" title="Définir mes horaires types"><span class="icon" data-lucide="clock"></span><span class="btn-text">Horaires types</span></button>
+    <button class="btn btn-primary" style="font-size:12px;padding:5px 11px;" onclick="applyHorairesWeek()" title="Remplir la semaine avec les horaires types"><span class="icon" data-lucide="zap"></span><span class="btn-text">Remplir semaine</span></button>
   </div>
 </div>
 
@@ -1162,12 +1256,16 @@
           <div class="lbl">Total du mois</div>
         </div>
         <div class="summary-chip">
-          <div class="val" id="summaryExtra">0h00</div>
-          <div class="lbl">Heures suppl.</div>
+          <div class="val" id="summaryExtra" style="color:var(--orange);">0h00</div>
+          <div class="lbl">Écart / jour</div>
         </div>
         <div class="summary-chip">
           <div class="val" id="summaryAbsDays" style="color:#f5c842;">0</div>
           <div class="lbl">Jours d'absence</div>
+        </div>
+        <div class="summary-chip" id="summaryObjChip" style="display:none;">
+          <div class="val" id="summaryObjDiff">—</div>
+          <div class="lbl" id="summaryObjLabel">/ objectif</div>
         </div>
       </div>
     </div>
@@ -1227,6 +1325,9 @@
         </tfoot>
       </table>
     </div>
+
+    <!-- VUE MOBILE (cartes) -->
+    <div id="mobileCards"></div>
   </div>
 
     <!-- GRAPHIQUE JOURNALIER -->
@@ -1519,6 +1620,18 @@
       </div>
     </div>
 
+    <!-- RACCOURCIS CLAVIER (desktop) -->
+    <div class="settings-section" id="kbdShortcutsSection">
+      <div class="settings-section-title">⌨️ Raccourcis clavier</div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);">
+        <div style="display:flex;justify-content:space-between;"><span>Sauvegarder</span><kbd class="kbd">Ctrl + S</kbd></div>
+        <div style="display:flex;justify-content:space-between;"><span>Imprimer / Exporter</span><kbd class="kbd">Ctrl + P</kbd></div>
+        <div style="display:flex;justify-content:space-between;"><span>Mois précédent / suivant</span><kbd class="kbd">← →</kbd></div>
+        <div style="display:flex;justify-content:space-between;"><span>Revenir à aujourd'hui</span><kbd class="kbd">T</kbd></div>
+        <div style="display:flex;justify-content:space-between;"><span>Fermer une fenêtre</span><kbd class="kbd">Échap</kbd></div>
+      </div>
+    </div>
+
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="closeSettingsModal()">Fermer</button>
     </div>
@@ -1600,10 +1713,25 @@ firebase.initializeApp(firebaseConfig);
 const fbAuth = firebase.auth();
 const fbDb = firebase.firestore();
 
+// ---- Persistance hors-ligne Firestore ----
+// Permet de lire/écrire les données même sans connexion internet.
+// Les modifications faites hors-ligne sont automatiquement synchronisées
+// dès que la connexion revient, sans aucune action de l'utilisateur.
+fbDb.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    // Plusieurs onglets ouverts simultanément — persistance activée sur un seul à la fois (normal)
+    console.warn('Persistance Firestore : un seul onglet à la fois peut l\'activer.');
+  } else if (err.code === 'unimplemented') {
+    // Navigateur ne supportant pas la persistance (rare)
+    console.warn('Persistance Firestore non supportée par ce navigateur.');
+  }
+});
+
 let currentFbUser = null;     // utilisateur Firebase connecté
 let isLoginMode = false;      // false = connexion, true = création de compte
 let syncTimeout = null;       // pour debounce la sauvegarde cloud
 let isLoadingFromCloud = false; // évite boucle pendant chargement initial
+let isOnline = navigator.onLine; // état de la connexion réseau
 
 // ---- UI Helpers ----
 function setSyncStatus(status, text) {
@@ -1763,10 +1891,14 @@ async function loadFromCloud() {
     } else {
       loadLocalRaw();
     }
+    // doc.metadata.fromCache indique que la donnée vient du cache local (hors-ligne)
+    if (doc.metadata && doc.metadata.fromCache && !isOnline) {
+      setSyncStatus('offline', 'Hors ligne — données locales');
+    }
   } catch (err) {
     console.warn('Erreur chargement cloud, utilisation locale', err);
     loadLocalRaw();
-    setSyncStatus('error', 'Hors ligne (local)');
+    setSyncStatus(isOnline ? 'error' : 'offline', isOnline ? 'Erreur de chargement' : 'Hors ligne (local)');
   }
   isLoadingFromCloud = false;
 }
@@ -1774,7 +1906,16 @@ async function loadFromCloud() {
 // ---- Sauvegarde vers Firestore (avec debounce 1.2s) ----
 function syncToCloud() {
   if (!currentFbUser || isLoadingFromCloud) return;
-  setSyncStatus('syncing', 'Synchronisation...');
+
+  // Hors-ligne : on informe l'utilisateur, mais on écrit quand même —
+  // Firestore avec persistence va mettre la modification en file d'attente
+  // et la synchronisera automatiquement au retour du réseau.
+  if (!isOnline) {
+    setSyncStatus('offline', 'Hors ligne — sera synchronisé');
+  } else {
+    setSyncStatus('syncing', 'Synchronisation...');
+  }
+
   clearTimeout(syncTimeout);
   syncTimeout = setTimeout(async () => {
     try {
@@ -1782,13 +1923,35 @@ function syncToCloud() {
         data, objectives, soldes, horairesTypes, profileData,
         updatedAt: new Date().toISOString()
       });
-      setSyncStatus('synced', 'Synchronisé');
+      // Si l'écriture passe alors qu'on est marqué hors-ligne, c'est que
+      // la connexion est en fait revenue entre temps
+      setSyncStatus(isOnline ? 'synced' : 'offline',
+                    isOnline ? 'Synchronisé' : 'En attente de réseau');
     } catch (err) {
       console.warn('Erreur sync cloud', err);
-      setSyncStatus('error', 'Erreur de synchro');
+      // Avec la persistence activée, cette écriture reste en local
+      // et partira automatiquement dès que le réseau reviendra.
+      setSyncStatus(isOnline ? 'error' : 'offline',
+                    isOnline ? 'Erreur de synchro' : 'Hors ligne — en attente');
     }
   }, 1200);
 }
+
+// ---- Détection de connexion réseau ----
+window.addEventListener('online', () => {
+  isOnline = true;
+  if (currentFbUser) {
+    setSyncStatus('syncing', 'Reconnecté, synchronisation...');
+    // Force une resynchronisation des données en attente
+    syncToCloud();
+  }
+});
+window.addEventListener('offline', () => {
+  isOnline = false;
+  if (currentFbUser) {
+    setSyncStatus('offline', 'Hors ligne — vos modifications seront synchronisées au retour du réseau');
+  }
+});
 
 
 // ===================== DATA LAYER (mono-utilisateur) =====================
@@ -1904,6 +2067,69 @@ function init() {
   buildMonthTabs();
   renderMonth();
   startClock();
+  renderIcons();
+  initKeyboardShortcuts();
+}
+
+function renderIcons() {
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
+}
+
+// ===================== RACCOURCIS CLAVIER (DESKTOP) =====================
+let keyboardShortcutsBound = false;
+function initKeyboardShortcuts() {
+  if (keyboardShortcutsBound) return; // évite double-binding si init() rappelé
+  keyboardShortcutsBound = true;
+
+  document.addEventListener('keydown', (e) => {
+    // Ne pas interférer si l'utilisateur tape dans un champ texte/commentaire
+    const tag = (e.target.tagName || '').toLowerCase();
+    const isTyping = tag === 'input' || tag === 'select' || tag === 'textarea';
+
+    // Échap : ferme la modale actuellement ouverte
+    if (e.key === 'Escape') {
+      const openModal = document.querySelector('.modal-overlay.show');
+      if (openModal) {
+        e.preventDefault();
+        openModal.classList.remove('show');
+      }
+      return;
+    }
+
+    // Ctrl+S / Cmd+S : sauvegarder (fonctionne même dans un champ)
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      if (currentFbUser) saveAll();
+      return;
+    }
+
+    // Ctrl+P / Cmd+P : ouvrir le menu Imprimer & Export (au lieu de l'impression navigateur brute)
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+      e.preventDefault();
+      if (currentFbUser) openPrintModal();
+      return;
+    }
+
+    // Raccourcis suivants désactivés si on tape dans un champ
+    if (isTyping) return;
+
+    // Flèche gauche / droite : mois précédent / suivant
+    if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.metaKey) {
+      const idx = MONTHS.findIndex((_, i) => i === currentMonth);
+      if (idx > 0) selectMonth(idx - 1);
+    }
+    if (e.key === 'ArrowRight' && !e.ctrlKey && !e.metaKey) {
+      const idx = MONTHS.findIndex((_, i) => i === currentMonth);
+      if (idx < 11) selectMonth(idx + 1);
+    }
+
+    // T : revenir à aujourd'hui
+    if (e.key.toLowerCase() === 't') {
+      goToToday();
+    }
+  });
 }
 
 function buildYearSelect() {
@@ -2076,7 +2302,122 @@ function renderMonth() {
     recalcRow(dkey);
   });
 
+  renderMobileCards(days);
   updateMonthSummary();
+}
+
+// ===================== VUE MOBILE (CARTES) =====================
+function renderMobileCards(days) {
+  const container = document.getElementById('mobileCards');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const dayNamesFull = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+
+  days.forEach(d => {
+    const dkey = dateKey(d);
+    const saved = getRowData(dkey);
+    const mins = calcRowMinutes(dkey);
+
+    const card = document.createElement('div');
+    card.className = 'day-card';
+    card.dataset.dkey = dkey;
+
+    const isOver = mins > NORMAL_HOURS_DAY * 60;
+
+    card.innerHTML = `
+      <div class="day-card-header">
+        <div>
+          <div class="day-card-title">${dayNamesFull[d.getDay()]}</div>
+          <div class="day-card-date">${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} · S${getWeekNumber(d)}</div>
+        </div>
+        <div class="day-card-total ${isOver ? 'over' : ''}" id="cardTotal-${dkey}">${mins > 0 ? minToStr(mins) : '0h00'}</div>
+      </div>
+      <div class="day-card-fields">
+        <div class="day-card-field">
+          <label>Deb.M</label>
+          <input type="time" data-field="morningStart" data-dkey="${dkey}" data-card="1" value="${saved.morningStart||''}">
+        </div>
+        <div class="day-card-field">
+          <label>Fin.M</label>
+          <input type="time" data-field="morningEnd" data-dkey="${dkey}" data-card="1" value="${saved.morningEnd||''}">
+        </div>
+        <div class="day-card-field"></div>
+        <div class="day-card-field">
+          <label>Deb.AM</label>
+          <input type="time" data-field="pmStart" data-dkey="${dkey}" data-card="1" value="${saved.pmStart||''}">
+        </div>
+        <div class="day-card-field">
+          <label>Fin.AM</label>
+          <input type="time" data-field="pmEnd" data-dkey="${dkey}" data-card="1" value="${saved.pmEnd||''}">
+        </div>
+        <div class="day-card-field"></div>
+        <div class="day-card-field">
+          <label>Deb.S</label>
+          <input type="time" data-field="extraStart" data-dkey="${dkey}" data-card="1" value="${saved.extraStart||''}">
+        </div>
+        <div class="day-card-field">
+          <label>Fin.S</label>
+          <input type="time" data-field="extraEnd" data-dkey="${dkey}" data-card="1" value="${saved.extraEnd||''}">
+        </div>
+        <div class="day-card-field"></div>
+      </div>
+      <div class="day-card-absence">
+        <select data-field="absence" data-dkey="${dkey}" data-card="1"></select>
+      </div>
+      <div class="day-card-comment">
+        <input type="text" placeholder="Commentaire..." data-field="comment" data-dkey="${dkey}" data-card="1" value="${saved.comment||''}">
+      </div>
+    `;
+
+    // Remplir le select absence
+    const sel = card.querySelector('select');
+    ABSENCES.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.code;
+      opt.textContent = a.code === '—' ? '— Aucune' : `${a.code} · ${a.full}`;
+      if (saved.absence === a.code) opt.selected = true;
+      sel.appendChild(opt);
+    });
+
+    // Events : synchroniser avec le tableau caché et recalculer
+    card.querySelectorAll('input[type="time"], select, input[type="text"]').forEach(el => {
+      el.addEventListener('input', () => syncCardToTable(dkey));
+      el.addEventListener('change', () => syncCardToTable(dkey));
+    });
+
+    container.appendChild(card);
+  });
+}
+
+// Synchronise les valeurs saisies dans une carte mobile vers la ligne <tr> cachée correspondante
+function syncCardToTable(dkey) {
+  const card = document.querySelector(`.day-card[data-dkey="${dkey}"]`);
+  const row  = document.querySelector(`tr[data-dkey="${dkey}"]`);
+  if (!card || !row) return;
+
+  card.querySelectorAll('[data-field]').forEach(cardEl => {
+    const field = cardEl.dataset.field;
+    const rowEl = row.querySelector(`[data-field="${field}"]`);
+    if (rowEl) rowEl.value = cardEl.value;
+  });
+
+  autoSaveRow(dkey);
+  recalcRow(dkey);
+
+  // Mettre à jour le total affiché sur la carte
+  const mins = calcRowMinutes(dkey);
+  const totalEl = document.getElementById(`cardTotal-${dkey}`);
+  if (totalEl) {
+    totalEl.textContent = mins > 0 ? minToStr(mins) : '0h00';
+    totalEl.classList.toggle('over', mins > NORMAL_HOURS_DAY * 60);
+  }
+
+  // Style absence sur la carte (bordure colorée si absence)
+  const absSel = card.querySelector('select[data-field="absence"]');
+  if (absSel) {
+    card.classList.toggle('has-absence', absSel.value !== '—');
+  }
 }
 
 // ===================== ABSENCE STYLE =====================
@@ -2217,19 +2558,33 @@ function updateMonthSummary() {
     const absSel = row ? row.querySelector('[data-field="absence"]') : null;
     const absVal = absSel ? absSel.value : '—';
 
-    if (m > 0) { totalMin += m; workedDays++; const ex = m - NORMAL_HOURS_DAY*60; if (ex > 0) extraMin += ex; }
+    if (m > 0) {
+      totalMin += m;
+      workedDays++;
+      const ex = m - NORMAL_HOURS_DAY * 60;
+      if (ex > 0) extraMin += ex;
+    }
     if (absVal !== '—') absDays++;
   });
 
   document.getElementById('summaryDays').textContent = workedDays;
   document.getElementById('summaryHours').textContent = minToStr(totalMin);
-  document.getElementById('summaryExtra').textContent = minToStr(extraMin);
+
+  // Chip "Écart / jour" — heures faites au-delà de 7h/jour cumulées
+  const extraEl = document.getElementById('summaryExtra');
+  if (extraMin > 0) {
+    extraEl.textContent = '+' + minToStr(extraMin);
+    extraEl.style.color = 'var(--green)';
+  } else {
+    extraEl.textContent = '0h00';
+    extraEl.style.color = 'var(--muted)';
+  }
+
   document.getElementById('summaryAbsDays').textContent = absDays;
   document.getElementById('totalMonthFoot').textContent = minToStr(totalMin);
-  document.getElementById('totalExtraFoot').textContent = extraMin > 0 ? `dont ${minToStr(extraMin)} suppl.` : '';
+  document.getElementById('totalExtraFoot').textContent = extraMin > 0 ? `dont +${minToStr(extraMin)} suppl.` : '';
   document.getElementById('totalAbsFoot').textContent = absDays > 0 ? `${absDays} jour(s) d'absence` : '';
 
-  // Nouvelles fonctions
   renderObjectiveBar(totalMin);
   renderSoldes();
   renderChart(days);
@@ -2696,23 +3051,64 @@ function getWeekNumber(d) {
 function renderObjectiveBar(totalMin) {
   const objH = getMonthObjective();
   const bar = document.getElementById('objectiveBar');
+  const chip = document.getElementById('summaryObjChip');
+  const chipVal = document.getElementById('summaryObjDiff');
+  const chipLbl = document.getElementById('summaryObjLabel');
+
   if (!bar) return;
-  if (objH <= 0) { bar.style.display = 'none'; return; }
+
+  if (objH <= 0) {
+    bar.style.display = 'none';
+    if (chip) chip.style.display = 'none';
+    return;
+  }
+
   bar.style.display = 'flex';
+  if (chip) chip.style.display = 'block';
 
   const objMin = Math.round(objH * 60);
-  const pct = Math.min(100, Math.round((totalMin / objMin) * 100));
-  const diff = totalMin - objMin;
-  const diffStr = (diff >= 0 ? '+' : '') + minToStr(Math.abs(diff));
-  const diffColor = diff >= 0 ? 'var(--green)' : 'var(--orange)';
-  const barColor = diff >= 0 ? 'var(--green)' : (pct > 80 ? 'var(--orange)' : 'var(--accent)');
+  const pct    = Math.min(100, Math.round((totalMin / objMin) * 100));
+  const diff   = totalMin - objMin; // négatif = manque, positif = surplus
 
-  document.getElementById('objBarFill').style.width = pct + '%';
+  // Couleur barre
+  const barColor = diff >= 0 ? 'var(--green)' : (pct >= 80 ? 'var(--orange)' : 'var(--accent)');
+  document.getElementById('objBarFill').style.width      = pct + '%';
   document.getElementById('objBarFill').style.background = barColor;
-  document.getElementById('objBarPct').textContent = pct + '%';
-  document.getElementById('objBarDiff').textContent = diff === 0 ? '✓ Objectif atteint !' : diffStr;
-  document.getElementById('objBarDiff').style.color = diffColor;
-  document.getElementById('objBarTarget').textContent = `Objectif : ${minToStr(objMin)}`;
+  document.getElementById('objBarPct').textContent       = pct + '%';
+  document.getElementById('objBarPct').style.color       = barColor;
+  document.getElementById('objBarTarget').textContent    = `Objectif : ${minToStr(objMin)}`;
+
+  // Écart sur la barre
+  let diffLabel, diffColor;
+  if (diff === 0) {
+    diffLabel = '✓ Objectif atteint !';
+    diffColor = 'var(--green)';
+  } else if (diff > 0) {
+    diffLabel = `+${minToStr(diff)}`;
+    diffColor = 'var(--green)';
+  } else {
+    diffLabel = `−${minToStr(Math.abs(diff))} à faire`;
+    diffColor = 'var(--orange)';
+  }
+  document.getElementById('objBarDiff').textContent  = diffLabel;
+  document.getElementById('objBarDiff').style.color  = diffColor;
+
+  // Chip résumé en haut
+  if (chipVal && chipLbl) {
+    if (diff === 0) {
+      chipVal.textContent = '✓';
+      chipVal.style.color = 'var(--green)';
+      chipLbl.textContent = 'Objectif atteint';
+    } else if (diff > 0) {
+      chipVal.textContent = `+${minToStr(diff)}`;
+      chipVal.style.color = 'var(--green)';
+      chipLbl.textContent = 'sur l\'objectif';
+    } else {
+      chipVal.textContent = `−${minToStr(Math.abs(diff))}`;
+      chipVal.style.color = 'var(--orange)';
+      chipLbl.textContent = 'restants';
+    }
+  }
 }
 
 function openObjectiveModal() {
