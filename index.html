@@ -16,8 +16,6 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <!-- Lucide Icons -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
-
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -1203,10 +1201,10 @@
       <button class="view-btn" id="btnAnnual" onclick="setView('annual')">Annuel</button>
     </div>
     <div class="hdr-sep"></div>
-    <button class="btn btn-import" onclick="triggerImport()" title="Charger un fichier de sauvegarde JSON"><span class="icon" data-lucide="upload"></span><span class="btn-text">Charger</span></button>
-    <button class="btn btn-ghost" onclick="openPrintModal()" title="Imprimer, exporter Excel/PDF/JSON"><span class="icon" data-lucide="printer"></span><span class="btn-text">Imprimer & Export</span></button>
-    <button class="btn btn-green" onclick="saveAll()"><span class="icon" data-lucide="save"></span><span class="btn-text">Sauvegarder</span></button>
-    <button class="btn-settings" onclick="openSettingsModal()" title="Paramètres"><span class="icon" data-lucide="settings"></span></button>
+    <button class="btn btn-import" onclick="triggerImport()" title="Charger un fichier de sauvegarde JSON"><span class="icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span><span class="btn-text">Charger</span></button>
+    <button class="btn btn-ghost" onclick="openPrintModal()" title="Imprimer, exporter Excel/PDF/JSON"><span class="icon"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span><span class="btn-text">Imprimer & Export</span></button>
+    <button class="btn btn-green" onclick="saveAll()"><span class="icon"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></span><span class="btn-text">Sauvegarder</span></button>
+    <button class="btn-settings" onclick="openSettingsModal()" title="Paramètres"><span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span></button>
   </div>
   <!-- Input fichier caché pour l'import -->
   <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importData(event)">
@@ -1215,14 +1213,14 @@
 <div class="nav-bar">
   <span class="nav-label">Année</span>
   <select class="nav-select" id="yearSelect" onchange="changeYear()"></select>
-  <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="goToToday()" title="Revenir au mois et à l'année actuels"><span class="icon" data-lucide="calendar-check"></span><span class="btn-text">Aujourd'hui</span></button>
+  <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="goToToday()" title="Revenir au mois et à l'année actuels"><span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-4"/></svg></span><span class="btn-text">Aujourd'hui</span></button>
   <span class="nav-label">Mois</span>
   <div class="month-tabs" id="monthTabs"></div>
   <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
-    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openObjectiveModal()" title="Définir l'objectif d'heures du mois"><span class="icon" data-lucide="target"></span><span class="btn-text">Objectif</span></button>
-    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openSoldesModal()" title="Gérer le solde de congés"><span class="icon" data-lucide="palmtree"></span><span class="btn-text">Soldes</span></button>
-    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openHorairesModal()" title="Définir mes horaires types"><span class="icon" data-lucide="clock"></span><span class="btn-text">Horaires types</span></button>
-    <button class="btn btn-primary" style="font-size:12px;padding:5px 11px;" onclick="applyHorairesWeek()" title="Remplir la semaine avec les horaires types"><span class="icon" data-lucide="zap"></span><span class="btn-text">Remplir semaine</span></button>
+    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openObjectiveModal()" title="Définir l'objectif d'heures du mois"><span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span><span class="btn-text">Objectif</span></button>
+    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openSoldesModal()" title="Gérer le solde de congés"><span class="icon"><svg viewBox="0 0 24 24"><path d="M13 8c0-2.76-2.24-5-5-5-2.76 0-5 2.24-5 5"/><path d="M13 8c0-2.76 2.24-5 5-5 2.76 0 5 2.24 5 5"/><path d="M8 8c0-2.76 2.24-5 5-5 2.76 0 5 2.24 5 5"/><path d="M8 8s-1 3-1 5"/><path d="M13 8v13"/><line x1="9" y1="21" x2="17" y2="21"/></svg></span><span class="btn-text">Soldes</span></button>
+    <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="openHorairesModal()" title="Définir mes horaires types"><span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="btn-text">Horaires types</span></button>
+    <button class="btn btn-primary" style="font-size:12px;padding:5px 11px;" onclick="applyHorairesWeek()" title="Remplir la semaine avec les horaires types"><span class="icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="btn-text">Remplir semaine</span></button>
   </div>
 </div>
 
@@ -2072,9 +2070,8 @@ function init() {
 }
 
 function renderIcons() {
-  if (window.lucide && typeof lucide.createIcons === 'function') {
-    lucide.createIcons();
-  }
+  // Les icones sont maintenant des SVG inline dans le HTML, rien a faire ici.
+  // Fonction conservee pour compatibilite avec les appels existants dans init().
 }
 
 // ===================== RACCOURCIS CLAVIER (DESKTOP) =====================
@@ -3262,7 +3259,7 @@ function renderChart(days) {
     return calcFromSaved(getRowData(dkey));
   });
 
-  const maxVal = Math.max(...mins.map(m => m.total || 0), NORMAL_HOURS_DAY * 60 + 60);
+  const maxVal = Math.max(...mins.map(m => m || 0), NORMAL_HOURS_DAY * 60 + 60);
   const n = mins.length;
   if (n === 0) return;
 
@@ -3293,7 +3290,7 @@ function renderChart(days) {
   ctx.fillText(`${NORMAL_HOURS_DAY}h`, 2, refY - 2);
 
   mins.forEach((m, i) => {
-    const total = m.total || 0;
+    const total = m || 0;
     const x = 10 + i * (barW + 2);
     const barH = total > 0 ? Math.max(4, Math.round((total / maxVal) * usableH)) : 0;
     const y = H - 16 - barH;
