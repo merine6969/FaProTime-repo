@@ -1036,6 +1036,8 @@
     .hdr-sep { display: none; }
     .btn { font-size: 11px; padding: 5px 8px; }
     .btn-text { display: none; }
+    #btnGoToToday .btn-text { display: inline; } /* toujours visible : icône seule ambiguë */
+    #btnGoToToday .icon { margin-right: 4px; }
     .view-toggle { gap: 3px; }
     .view-btn { font-size: 11px; padding: 4px 9px; }
     .nav-bar { padding: 8px 10px; gap: 5px; flex-direction: column; align-items: stretch; }
@@ -1213,7 +1215,7 @@
 <div class="nav-bar">
   <span class="nav-label">Année</span>
   <select class="nav-select" id="yearSelect" onchange="changeYear()"></select>
-  <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="goToToday()" title="Revenir au mois et à l'année actuels"><span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-4"/></svg></span><span class="btn-text">Aujourd'hui</span></button>
+  <button class="btn btn-ghost" id="btnGoToToday" style="font-size:11px;padding:5px 10px;" onclick="goToToday()" title="Revenir au mois et à l'année actuels"><span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-4"/></svg></span><span class="btn-text">Aujourd'hui</span></button>
   <span class="nav-label">Mois</span>
   <div class="month-tabs" id="monthTabs"></div>
   <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
@@ -1331,7 +1333,9 @@
     <!-- GRAPHIQUE JOURNALIER -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;">
       <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">📊 Heures par jour</div>
-      <canvas id="hoursChart" style="width:100%;display:block;"></canvas>
+      <div id="chartScrollWrap" style="overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;">
+        <canvas id="hoursChart" style="display:block;"></canvas>
+      </div>
     </div>
   </div>
 
@@ -1560,7 +1564,7 @@
 
 <!-- MODAL PARAMÈTRES -->
 <div class="modal-overlay" id="settingsModal">
-  <div class="modal" style="max-width:460px;">
+  <div class="modal" style="max-width:460px;max-height:85vh;overflow-y:auto;padding:20px 24px;">
     <div class="modal-title">⚙️ Paramètres</div>
 
     <!-- THÈME -->
@@ -3246,12 +3250,23 @@ function applyHorairesWeek() {
 // ===================== GRAPHIQUE JOURNALIER =====================
 function renderChart(days) {
   const canvas = document.getElementById('hoursChart');
-  if (!canvas) return;
+  const wrap = document.getElementById('chartScrollWrap');
+  if (!canvas || !wrap) return;
   const ctx = canvas.getContext('2d');
-  const W = canvas.offsetWidth || 800;
   const H = 100;
+  const n = days.length;
+  if (n === 0) return;
+
+  // Largeur minimale par barre pour que le libellé "9h45" reste lisible sans chevauchement
+  const MIN_BAR_W = 24;
+  const GAP = 3;
+  const containerW = wrap.offsetWidth || 800;
+  const neededW = n * (MIN_BAR_W + GAP) + 20;
+  const W = Math.max(containerW, neededW);
+
   canvas.width = W;
   canvas.height = H;
+  canvas.style.width = W + 'px';
   ctx.clearRect(0, 0, W, H);
 
   const mins = days.map(d => {
@@ -3260,11 +3275,9 @@ function renderChart(days) {
   });
 
   const maxVal = Math.max(...mins.map(m => m || 0), NORMAL_HOURS_DAY * 60 + 60);
-  const n = mins.length;
-  if (n === 0) return;
 
   const isLight = document.body.classList.contains('theme-light');
-  const barW = Math.floor((W - 20) / n) - 2;
+  const barW = Math.floor((W - 20) / n) - GAP;
   const usableH = H - 22; // espace pour labels en bas
   const normalH = Math.round((NORMAL_HOURS_DAY * 60 / maxVal) * usableH);
 
@@ -3291,7 +3304,7 @@ function renderChart(days) {
 
   mins.forEach((m, i) => {
     const total = m || 0;
-    const x = 10 + i * (barW + 2);
+    const x = 10 + i * (barW + GAP);
     const barH = total > 0 ? Math.max(4, Math.round((total / maxVal) * usableH)) : 0;
     const y = H - 16 - barH;
 
@@ -3314,17 +3327,27 @@ function renderChart(days) {
     }
     ctx.fill();
 
-    // Label heures AU-DESSUS de la barre — couleur contrastée
+    // Label heures AU-DESSUS de la barre — couleur contrastée par thème
     if (total > 0) {
       const labelColor = total > NORMAL_HOURS_DAY * 60
-        ? '#ea6d10'  // orange foncé lisible
-        : '#059669'; // vert foncé lisible
+        ? '#ea6d10'  // orange foncé lisible (mode jour)
+        : '#059669'; // vert foncé lisible (mode jour)
       ctx.fillStyle = isLight ? labelColor : (total > NORMAL_HOURS_DAY * 60 ? '#fdba74' : '#6ee7b7');
-      ctx.font = `bold 8px Arial, sans-serif`;
+      ctx.font = 'bold 9px Arial, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(minToStr(total), x + barW / 2, Math.max(y - 2, 10));
+      ctx.fillText(minToStr(total), x + barW / 2, Math.max(y - 3, 10));
     }
   });
+
+  // Faire défiler automatiquement vers aujourd'hui si le graphique est plus large que l'écran
+  if (W > containerW) {
+    const today = new Date();
+    const todayIdx = days.findIndex(d => d.toDateString() === today.toDateString());
+    if (todayIdx >= 0) {
+      const todayX = 10 + todayIdx * (barW + GAP);
+      wrap.scrollLeft = Math.max(0, todayX - containerW / 2);
+    }
+  }
 }
 
 // ===================== ALERTE JOURS NON SAISIS =====================
