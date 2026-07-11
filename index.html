@@ -395,6 +395,40 @@
     letter-spacing: .08em;
   }
 
+  /* ---- RÉCAP HEBDOMADAIRE (35h) ---- */
+  .week-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 12px;
+  }
+  .week-chip .week-num-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent2);
+    background: rgba(167,139,250,.12);
+    padding: 2px 7px;
+    border-radius: 5px;
+  }
+  .week-chip .week-total {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .week-chip .week-diff {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .week-chip .week-diff.pos { color: var(--green); }
+  .week-chip .week-diff.neg { color: var(--orange); }
+  .week-chip .week-diff.zero { color: var(--muted); }
+
   /* ---- TABLE ---- */
   .planning-table-wrap {
     overflow-x: auto;
@@ -1279,6 +1313,9 @@
       <span id="objBarPct" style="font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:var(--accent);min-width:40px;">0%</span>
       <span id="objBarDiff" style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--green);">—</span>
     </div>
+
+    <!-- RÉCAP HEBDOMADAIRE (35h/semaine) -->
+    <div id="weeklyRecap" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;"></div>
 
     <!-- SOLDES CONGÉS -->
     <div id="soldesBar" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
@@ -2589,8 +2626,57 @@ function updateMonthSummary() {
   renderObjectiveBar(totalMin);
   renderSoldes();
   renderChart(days);
+  renderWeeklyRecap(days);
   checkMissingDays();
   updatePrintHeader();
+}
+
+// ===================== RÉCAP HEBDOMADAIRE (35h/semaine) =====================
+const NORMAL_HOURS_WEEK = 35; // référence hebdomadaire = 5 x 7h
+
+function renderWeeklyRecap(days) {
+  const container = document.getElementById('weeklyRecap');
+  if (!container) return;
+
+  // Regrouper les jours du mois par numéro de semaine ISO
+  const weeks = {}; // { weekNum: totalMinutes }
+  days.forEach(d => {
+    const wk = getWeekNumber(d);
+    const dkey = dateKey(d);
+    const m = calcRowMinutes(dkey);
+    weeks[wk] = (weeks[wk] || 0) + m;
+  });
+
+  const weekNums = Object.keys(weeks).map(Number).sort((a, b) => a - b);
+  container.innerHTML = '';
+
+  if (weekNums.length === 0) return;
+
+  const refMin = NORMAL_HOURS_WEEK * 60;
+
+  weekNums.forEach(wk => {
+    const total = weeks[wk];
+    const diff = total - refMin;
+
+    let diffClass, diffText;
+    if (diff === 0) {
+      diffClass = 'zero'; diffText = '= 35h';
+    } else if (diff > 0) {
+      diffClass = 'pos'; diffText = `+${minToStr(diff)}`;
+    } else {
+      diffClass = 'neg'; diffText = `−${minToStr(Math.abs(diff))}`;
+    }
+
+    const chip = document.createElement('div');
+    chip.className = 'week-chip';
+    chip.innerHTML = `
+      <span class="week-num-badge">S${wk}</span>
+      <span class="week-total">${minToStr(total)}</span>
+      <span class="week-diff ${diffClass}">${diffText}</span>
+    `;
+    chip.title = `Semaine ${wk} — Total réel : ${minToStr(total)} — Référence : 35h00`;
+    container.appendChild(chip);
+  });
 }
 
 // ===================== AUTO-SAVE =====================
