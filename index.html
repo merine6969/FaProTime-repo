@@ -3,6 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Sécurité : Politique de sécurité de contenu -->
+<!-- 'unsafe-inline' requis pour script/style car l'app est un fichier unique sans JS/CSS externe.
+     Cela restreint néanmoins : les domaines autorisés à charger du code, où les données peuvent
+     être envoyées (protège contre l'exfiltration), et bloque l'intégration de la page dans un iframe. -->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' https://fonts.gstatic.com;
+  img-src 'self' data: blob:;
+  connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com;
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+  frame-ancestors 'none';
+">
+<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+
 <title>FaProTime</title>
 
 <!-- PWA -->
@@ -1847,6 +1866,19 @@
 <script>
 // ===================== CONFIG =====================
 const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+// ===================== SÉCURITÉ : ÉCHAPPEMENT HTML =====================
+// Empêche l'injection de code (XSS) via les champs texte libres (commentaires, profil).
+// À utiliser systématiquement avant d'insérer une donnée utilisateur dans du innerHTML.
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 const DAYS_MAP = {1:'Lundi',2:'Mardi',3:'Mercredi',4:'Jeudi',5:'Vendredi'};
 const NORMAL_HOURS_DAY = 7; // heures normales / jour
 
@@ -2608,7 +2640,7 @@ function renderMobileCards(days) {
         <select data-field="absence" data-dkey="${dkey}" data-card="1"></select>
       </div>
       <div class="day-card-comment">
-        <input type="text" placeholder="Commentaire..." data-field="comment" data-dkey="${dkey}" data-card="1" value="${saved.comment||''}">
+        <input type="text" placeholder="Commentaire..." data-field="comment" data-dkey="${dkey}" data-card="1" value="${escapeHtml(saved.comment||'')}">
       </div>
     `;
 
@@ -3035,8 +3067,8 @@ function importData(event) {
       const exportDateFr = parsed.exportDateFr || parsed.exportDate || 'inconnue';
       document.getElementById('importModalBody').innerHTML = `
         Vous êtes sur le point de charger :<br>
-        <strong>${file.name}</strong><br>
-        Exporté le : <strong>${exportDateFr}</strong><br><br>
+        <strong>${escapeHtml(file.name)}</strong><br>
+        Exporté le : <strong>${escapeHtml(exportDateFr)}</strong><br><br>
         Cela va <strong>remplacer toutes les données actuelles</strong>.<br>
         Cette action est irréversible.<br><br>
         Voulez-vous continuer ?
@@ -3166,7 +3198,7 @@ function buildMonthPrintHTML(year, monthIdx) {
       <td style="font-family:monospace;">${saved.extraEnd||''}</td>
       <td style="font-family:monospace;font-weight:700;color:${mins>NORMAL_HOURS_DAY*60?'#c05000':'#147a50'};">${minToStr(mins)}</td>
       <td>${absLabel ? `<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;border:1px solid #ccc;background:#f0f0f0;">${absLabel}</span>` : ''}</td>
-      <td style="font-size:10px;color:#555;">${saved.comment||''}</td>
+      <td style="font-size:10px;color:#555;">${escapeHtml(saved.comment||'')}</td>
     </tr>`;
   });
 
@@ -3270,9 +3302,9 @@ function openPrintWindow(bodyHTML, title) {
   const enteteHTML = `
     <div class="print-entete">
       <div class="print-entete-left">
-        ${p.nom     ? `<div class="nom">${p.nom}</div>` : ''}
-        ${p.poste   ? `<div class="poste">${p.poste}</div>` : ''}
-        ${p.societe ? `<div class="societe">${p.societe}</div>` : ''}
+        ${p.nom     ? `<div class="nom">${escapeHtml(p.nom)}</div>` : ''}
+        ${p.poste   ? `<div class="poste">${escapeHtml(p.poste)}</div>` : ''}
+        ${p.societe ? `<div class="societe">${escapeHtml(p.societe)}</div>` : ''}
       </div>
       <div class="print-entete-right">
         <div class="periode">${title}</div>
